@@ -170,7 +170,7 @@ export default function Dashboard() {
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold">AQ</div>
           <div>
             <h1 className="text-base font-bold text-white tracking-tight">Urban Air Quality Intelligence</h1>
-            <p className="text-[10px] text-gray-500 -mt-0.5">OpenAQ · LightGBM · Wind Attribution</p>
+            <p className="text-[10px] text-gray-500 -mt-0.5">Station signals · Forecasting · Source attribution · Intervention</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -400,7 +400,32 @@ export default function Dashboard() {
                     {/* Forecast Chart (mini sparkline) */}
                     {forecastChart.length > 0 && (
                       <div className="bg-gray-700/40 rounded-lg p-2.5">
-                        <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1.5">72-Hour Forecast</h3>
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <h3 className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">72-Hour Forecast</h3>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded border ${
+                            forecastData?.metadata?.data_status === 'demo_synthetic'
+                              ? 'border-amber-700/60 bg-amber-900/30 text-amber-300'
+                              : forecastData?.metadata?.metrics_status === 'measured_holdout'
+                                ? 'border-emerald-700/60 bg-emerald-900/30 text-emerald-300'
+                                : 'border-gray-600 bg-gray-700 text-gray-400'
+                          }`}>
+                            {forecastData?.metadata?.data_status === 'demo_synthetic'
+                              ? 'DEMO FORECAST'
+                              : forecastData?.metadata?.metrics_status === 'measured_holdout'
+                                ? 'HOLDOUT EVALUATED'
+                                : 'METRICS PENDING'}
+                          </span>
+                        </div>
+                        {forecastData?.metadata?.data_status === 'demo_synthetic' && (
+                          <p className="text-[10px] leading-relaxed text-amber-300/80 mb-2">
+                            Demo fallback — interactive scenario, not a validated forecast.
+                          </p>
+                        )}
+                        {forecastData?.metadata?.metrics_status === 'measured_holdout' && (
+                          <p className="text-[10px] leading-relaxed text-emerald-300/80 mb-2">
+                            Held-out RMSE: {forecastData.metadata.model_rmse} · Persistence: {forecastData.metadata.persistence_rmse}
+                          </p>
+                        )}
                         <div className="relative h-12">
                           <svg viewBox={`0 0 ${forecastChart.length} 100`} className="w-full h-full" preserveAspectRatio="none">
                             <defs>
@@ -440,8 +465,8 @@ export default function Dashboard() {
             {metadata && (
               <div className="px-4 py-2 border-t border-gray-700 bg-gray-800/50">
                 <div className="flex items-center justify-between text-[9px] text-gray-600">
-                  <span>OpenAQ/CPCB · LightGBM · LangGraph</span>
-                  <span>RMSE vs persistence: measured</span>
+                  <span>Prototype decision-support system</span>
+                  <span>Forecast card shows evaluation status</span>
                   <span>{metadata.cities_supported?.join(', ')}</span>
                 </div>
               </div>
