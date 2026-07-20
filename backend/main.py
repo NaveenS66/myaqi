@@ -197,11 +197,12 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     if fc_df.empty:
         return _synthetic_forecast(station, hours)
 
-    # Compute persistence baseline comparison
-    current_aqi = fc_df["aqi"].iloc[0] if not fc_df.empty else 200
-    persistence_pred = current_aqi
-    model_rmse = np.std(fc_df["aqi"].values) if len(fc_df) > 1 else 0
-    persistence_rmse = abs(persistence_pred - fc_df["aqi"].mean()) if not fc_df.empty else 0
+    # Report only the held-out metrics calculated during model training.
+    # Forecast variation is not an accuracy metric and must never be shown as RMSE.
+    training_metrics = model_data.get("metadata", {})
+    test_rmse = training_metrics.get("test_rmse")
+    persistence_rmse = training_metrics.get("persistence_rmse")
+    improvement_pct = training_metrics.get("improvement_pct")
 
     return {
         "status": "ok",
@@ -209,11 +210,13 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
         "forecast": fc_df.to_dict("records"),
         "metadata": {
             "model": "LightGBM",
-            "features_used": 24,
-            "training_data": "12+ months CPCB + Open-Meteo weather",
-            "model_rmse": round(model_rmse, 1),
-            "persistence_rmse": round(persistence_rmse, 1),
-            "improvement_pct": round((persistence_rmse - model_rmse) / max(persistence_rmse, 1) * 100, 1),
+            "features_used": len(training_metrics.get("feature_cols", [])) or 24,
+            "training_data": "Station history + Open-Meteo weather",
+            "evaluation": "Time-ordered holdout set; persistence baseline uses AQI(t-24h)",
+            "model_rmse": round(float(test_rmse), 1) if test_rmse is not None else None,
+            "persistence_rmse": round(float(persistence_rmse), 1) if persistence_rmse is not None else None,
+            "improvement_pct": round(float(improvement_pct), 1) if improvement_pct is not None else None,
+            "metrics_status": "measured_holdout" if test_rmse is not None else "metrics_unavailable",
             "generated_at": datetime.now().isoformat(),
         }
     }
@@ -238,8 +241,9 @@ def _synthetic_forecast(station: str, hours: int) -> dict:
         "station": station,
         "forecast": fc,
         "metadata": {
-            "model": "Synthetic (training data pending)",
-            "note": "Real CPCB data will be used once cache is populated",
+            "model": "Synthetic demo fallback",
+            "data_status": "demo_synthetic",
+            "note": "This forecast is generated for interaction continuity and is not a measured model result.",
         }
     }
 
