@@ -1,1 +1,12 @@
-streamlit
+fastapi
+uvicorn
+geopandas
+pandas
+numpy
+lightgbm
+scikit-learn
+shap
+requests
+python-multipart
+pydantic
+openmeteo-requests

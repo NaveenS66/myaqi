@@ -1,0 +1,169 @@
+station,lat,lon,timestamp,aqi,pm25,pm10,no2,o3,category
+Dwarka Sector 8,28.59,77.04,2026-07-13 00:00:00,98,58.2,76.9,29.4,25.7,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-13 01:00:00,116,65.5,92.6,24.6,26.7,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-13 02:00:00,89,49.9,69.5,24.8,19.0,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-13 03:00:00,88,45.5,69.8,26.3,7.0,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-13 04:00:00,102,55.0,81.1,27.2,11.8,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-13 05:00:00,90,51.8,70.5,26.1,5.9,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-13 06:00:00,162,91.1,137.4,46.8,24.6,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 07:00:00,161,84.4,134.1,35.7,16.3,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 08:00:00,203,110.8,154.9,41.8,35.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 09:00:00,223,131.8,185.3,65.9,30.6,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 10:00:00,194,97.3,146.7,41.7,32.9,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 11:00:00,214,113.9,169.2,58.5,27.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 12:00:00,203,103.9,161.6,46.3,35.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 13:00:00,197,110.6,161.9,52.7,36.7,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 14:00:00,170,94.2,141.0,35.5,24.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 15:00:00,192,97.9,154.0,54.3,19.3,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 16:00:00,174,92.6,136.4,38.4,30.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 17:00:00,168,89.1,137.3,42.4,21.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 18:00:00,182,102.8,141.6,52.2,28.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 19:00:00,128,70.5,102.7,28.4,13.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-13 20:00:00,212,119.2,171.4,60.0,23.1,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 21:00:00,215,110.5,175.7,63.1,38.8,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 22:00:00,194,101.6,156.7,41.2,36.2,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-13 23:00:00,126,74.1,97.3,27.8,14.6,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 00:00:00,135,71.6,110.4,37.9,22.2,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 01:00:00,113,57.8,88.2,25.5,10.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 02:00:00,105,55.6,85.0,23.5,21.2,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 03:00:00,112,60.7,84.3,22.4,21.1,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 04:00:00,119,67.5,95.2,24.9,15.4,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 05:00:00,94,51.8,72.0,19.6,8.3,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-14 06:00:00,197,104.5,160.0,51.9,28.7,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 07:00:00,167,93.8,125.7,49.7,28.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 08:00:00,227,130.6,174.1,51.3,34.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 09:00:00,196,99.9,157.9,54.2,28.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 10:00:00,225,116.7,185.0,66.3,25.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 11:00:00,202,104.3,170.4,56.3,23.0,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 12:00:00,185,103.1,139.7,45.7,29.8,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 13:00:00,226,121.8,191.4,54.0,41.6,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 14:00:00,203,118.3,171.1,54.9,38.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 15:00:00,210,112.4,173.6,60.7,25.5,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 16:00:00,197,107.3,155.8,49.1,24.5,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 17:00:00,145,83.2,121.2,39.9,20.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 18:00:00,152,84.0,120.8,41.5,15.3,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 19:00:00,135,68.8,110.9,39.8,12.9,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-14 20:00:00,225,133.0,187.0,48.0,22.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 21:00:00,176,102.3,144.5,39.8,25.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 22:00:00,217,125.1,174.7,60.8,38.0,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-14 23:00:00,124,63.6,96.2,26.3,15.2,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 00:00:00,123,63.9,102.7,31.0,24.4,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 01:00:00,104,59.5,78.6,22.5,23.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 02:00:00,127,70.5,95.5,25.7,20.4,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 03:00:00,114,57.8,89.7,29.0,17.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 04:00:00,110,61.6,87.1,24.3,25.8,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 05:00:00,100,57.7,84.6,21.9,14.0,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-15 06:00:00,173,102.2,134.8,40.0,16.8,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 07:00:00,190,104.4,157.6,51.3,31.6,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 08:00:00,221,112.7,183.2,46.3,28.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 09:00:00,219,112.2,186.0,56.7,31.5,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 10:00:00,233,131.0,187.5,64.0,23.3,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 11:00:00,214,111.1,175.2,59.5,30.3,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 12:00:00,252,126.7,209.9,56.9,38.1,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 13:00:00,210,105.9,174.1,61.0,26.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 14:00:00,201,102.9,155.8,53.3,33.6,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 15:00:00,213,111.0,160.4,53.9,35.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 16:00:00,157,93.0,125.3,44.5,27.3,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 17:00:00,204,113.9,162.6,58.4,22.8,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 18:00:00,148,85.1,112.0,43.0,32.7,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 19:00:00,129,72.6,102.3,33.3,24.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-15 20:00:00,210,106.4,161.0,60.6,32.3,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 21:00:00,203,114.7,154.0,58.6,32.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 22:00:00,198,114.0,162.3,41.0,36.8,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-15 23:00:00,144,73.9,108.9,36.3,14.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-16 00:00:00,104,55.4,79.0,27.2,19.7,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-16 01:00:00,116,67.6,89.1,27.0,10.9,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-16 02:00:00,108,61.4,81.8,25.1,15.9,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-16 03:00:00,88,46.9,72.4,23.4,18.2,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-16 04:00:00,103,51.6,77.4,26.6,15.4,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-16 05:00:00,77,42.4,62.3,19.6,11.9,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-16 06:00:00,145,73.0,121.9,38.3,16.2,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-16 07:00:00,193,113.9,156.0,52.5,33.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 08:00:00,224,134.4,178.5,65.2,31.1,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 09:00:00,214,118.4,181.4,57.7,31.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 10:00:00,218,121.7,180.1,45.4,24.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 11:00:00,203,101.9,172.1,44.0,22.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 12:00:00,197,112.2,164.3,49.0,21.9,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 13:00:00,200,106.0,159.2,41.8,21.2,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 14:00:00,227,127.7,181.7,47.8,24.5,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 15:00:00,184,99.9,154.9,50.2,27.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 16:00:00,198,107.6,149.8,57.9,30.7,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 17:00:00,204,103.8,164.9,43.9,34.6,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 18:00:00,176,102.0,137.9,50.3,16.9,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 19:00:00,153,90.3,128.7,37.5,14.0,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 20:00:00,164,85.8,137.4,44.8,14.7,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 21:00:00,193,111.1,145.6,43.6,21.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 22:00:00,186,100.8,146.5,44.1,36.8,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-16 23:00:00,105,61.2,81.4,26.8,16.2,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-17 00:00:00,121,71.1,92.6,29.3,26.5,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-17 01:00:00,142,80.0,107.9,35.3,29.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-17 02:00:00,115,62.7,91.4,28.0,17.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-17 03:00:00,70,39.2,54.9,19.0,7.4,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-17 04:00:00,99,55.4,83.6,21.5,12.1,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-17 05:00:00,99,50.6,83.8,22.0,19.4,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-17 06:00:00,149,85.0,113.2,40.1,21.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-17 07:00:00,204,109.7,171.1,47.7,22.3,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 08:00:00,217,123.9,183.0,60.1,34.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 09:00:00,181,99.0,137.5,45.3,31.6,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 10:00:00,208,116.3,172.1,42.0,24.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 11:00:00,208,120.7,165.0,57.9,27.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 12:00:00,206,119.0,159.5,47.6,29.6,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 13:00:00,226,128.8,189.8,45.2,33.5,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 14:00:00,209,116.5,177.4,48.7,26.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 15:00:00,156,80.0,117.4,33.0,33.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 16:00:00,191,112.6,158.8,41.7,31.0,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 17:00:00,174,91.6,133.0,36.9,31.6,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 18:00:00,177,99.5,136.2,45.0,33.2,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 19:00:00,131,70.6,110.7,33.8,16.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-17 20:00:00,208,117.0,168.5,46.6,39.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 21:00:00,194,97.2,147.4,50.8,24.6,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 22:00:00,198,104.4,164.8,42.5,27.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-17 23:00:00,117,69.6,95.2,35.0,22.7,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-18 00:00:00,144,82.8,116.3,39.1,12.6,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-18 01:00:00,115,67.9,87.0,24.0,15.6,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-18 02:00:00,90,50.9,74.7,21.8,7.6,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-18 03:00:00,75,40.5,57.9,18.1,15.3,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-18 04:00:00,98,52.6,74.0,25.9,7.2,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-18 05:00:00,77,43.4,62.2,17.5,15.2,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-18 06:00:00,160,82.7,126.7,44.2,30.8,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 07:00:00,177,89.9,135.0,45.0,28.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 08:00:00,220,123.6,183.5,52.0,33.3,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 09:00:00,239,128.0,196.1,64.8,29.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 10:00:00,220,113.7,173.3,48.3,28.8,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 11:00:00,212,113.8,166.7,51.2,36.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 12:00:00,181,95.9,145.0,45.7,20.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 13:00:00,223,120.6,167.8,47.8,23.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 14:00:00,187,103.0,149.0,41.6,33.7,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 15:00:00,233,123.1,181.5,66.4,32.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 16:00:00,169,94.7,141.3,38.4,26.6,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 17:00:00,174,88.9,142.4,48.0,24.5,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 18:00:00,148,86.1,122.2,29.8,18.8,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-18 19:00:00,145,73.1,119.8,31.7,26.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-18 20:00:00,198,100.7,151.4,47.7,24.9,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 21:00:00,228,131.9,178.9,53.3,24.7,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 22:00:00,221,119.3,173.0,56.3,35.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-18 23:00:00,117,66.7,90.0,31.7,14.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-19 00:00:00,119,60.7,91.1,35.2,21.7,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-19 01:00:00,104,61.7,83.8,29.1,25.1,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-19 02:00:00,103,52.6,86.2,22.3,11.4,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-19 03:00:00,86,46.4,68.8,22.0,24.2,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-19 04:00:00,95,53.0,78.4,25.2,20.2,Moderate
+Dwarka Sector 8,28.59,77.04,2026-07-19 05:00:00,108,58.9,89.8,22.9,9.0,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-19 06:00:00,152,84.1,115.8,42.3,26.9,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 07:00:00,196,110.2,152.1,43.5,34.3,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 08:00:00,206,103.3,166.8,60.3,37.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 09:00:00,229,126.7,181.0,62.3,31.5,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 10:00:00,218,129.4,167.1,62.4,24.8,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 11:00:00,209,113.7,170.6,43.8,24.2,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 12:00:00,222,126.1,174.5,55.9,39.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 13:00:00,184,109.1,142.7,52.9,25.8,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 14:00:00,208,119.1,161.7,44.8,37.4,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 15:00:00,170,87.6,129.0,45.0,16.5,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 16:00:00,186,103.2,157.8,55.2,21.4,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 17:00:00,158,90.9,127.7,32.6,27.1,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 18:00:00,144,73.4,117.2,38.2,19.3,Unhealthy for Sensitive Groups
+Dwarka Sector 8,28.59,77.04,2026-07-19 19:00:00,157,92.8,126.1,46.6,18.5,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 20:00:00,205,105.7,154.7,43.1,39.0,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 21:00:00,194,107.3,163.2,46.1,26.2,Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 22:00:00,207,123.6,157.2,48.2,27.8,Very Unhealthy
+Dwarka Sector 8,28.59,77.04,2026-07-19 23:00:00,97,49.3,75.4,27.7,7.2,Moderate
