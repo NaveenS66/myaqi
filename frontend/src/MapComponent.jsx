@@ -81,8 +81,9 @@ export default function MapComponent({ aqiData, onEnforceTrigger, onStationClick
 
   const handleStationMarkClick = useCallback((station, latlng) => {
     setClickedPos(latlng);
+    // Station selection already starts the enforcement query in Dashboard.
+    // Avoid a second call here, which would duplicate a costly agent run.
     if (onStationClick) onStationClick(station, latlng);
-    if (onEnforceTrigger) onEnforceTrigger(latlng);
   }, [onEnforceTrigger, onStationClick]);
 
   // Extract station data from aqiData
@@ -164,29 +165,10 @@ export default function MapComponent({ aqiData, onEnforceTrigger, onStationClick
         )}
       </MapContainer>
 
-      {/* Forecast time slider */}
-      <div className="absolute bottom-4 left-4 right-4 z-[1000] bg-gray-900/80 backdrop-blur-sm px-4 py-2 rounded-lg border border-gray-700">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[11px] text-gray-400">Forecast: <strong className="text-gray-200">{forecastSlider}h</strong></span>
-          <span className="text-[11px] text-gray-400">
-            {forecastSlider === 0 ? 'Current' : forecastSlider < 24 ? 'Today' : forecastSlider < 48 ? 'Tomorrow' : 'Day 3'}
-          </span>
-        </div>
-        <input
-          type="range"
-          min="0"
-          max="72"
-          step="1"
-          value={forecastSlider}
-          onChange={(e) => setForecastSlider(parseInt(e.target.value))}
-          className="w-full h-1.5 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
-        />
-        <div className="flex justify-between text-[10px] text-gray-600 mt-0.5">
-          <span>Now</span>
-          <span>+24h</span>
-          <span>+48h</span>
-          <span>+72h</span>
-        </div>
+      {/* Honest interaction cue: forecast detail is shown after selecting a station. */}
+      <div className="absolute bottom-4 left-4 z-[1000] bg-gray-900/80 backdrop-blur-sm px-3 py-2 rounded-lg border border-gray-700">
+        <p className="text-[11px] font-medium text-gray-200">Select a station to inspect its 72-hour forecast</p>
+        <p className="text-[10px] text-gray-500 mt-0.5">Then run the evidence-to-intervention pipeline.</p>
       </div>
 
       {/* Map overlay hint */}
