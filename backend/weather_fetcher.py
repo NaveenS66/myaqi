@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.7 seconds
-Output:
 """
 Open-Meteo weather forecast data fetcher.
 Free API, no key required. Fetches historical + forecast weather for Delhi stations.
