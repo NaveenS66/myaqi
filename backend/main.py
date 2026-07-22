@@ -261,36 +261,182 @@ def get_attribution(req: AttributionRequest):
 
 @app.post("/api/agent/enforce")
 def enforce_agent(req: EnforceRequest):
-    """
-    Multi-agent enforcement pipeline:
-    1. Forecast Agent → detects AQI hotspots
-    2. Attribution Agent → identifies source breakdown
-    3. Enforcement Agent → generates ranked action list
-    4. Advisory Agent → generates citizen alerts
-    """
-    # Find nearest stations
+    """Generate transparent, human-reviewed inspection priorities."""
     all_stations = DELHI_STATIONS + MUMBAI_STATIONS
     nearby_stations = []
-    for s in all_stations:
-        dlat = (s["lat"] - req.lat) * 111.0
-        dlon = (s["lon"] - req.lon) * 111.0 * math.cos(math.radians((s["lat"] + req.lat) / 2))
-        dist = math.sqrt(dlat**2 + dlon**2)
-        if dist <= req.radius_km:
-            nearby_stations.append({**s, "distance_km": round(dist, 2)})
-
+    for station in all_stations:
+        dlat = (station["lat"] - req.lat) * 111.0
+        dlon = (station["lon"] - req.lon) * 111.0 * math.cos(math.radians((station["lat"] + req.lat) / 2))
+        distance = math.sqrt(dlat**2 + dlon**2)
+        if distance <= req.radius_km:
+            nearby_stations.append({**station, "distance_km": round(distance, 2)})
     if not nearby_stations:
-        # Return synthetic enforcement for the clicked location
-        return _synthetic_enforcement(req)
+        return {"status": "evidence_unavailable", "evidence_status": "unavailable",
+                "message": "No CAAQMS station is within the selected radius. Deploy mobile monitoring before recommending enforcement.",
+                "inspection_tasks": []}
 
-    # Build station data from actual observations only.
     stations_data = []
-    for s in nearby_stations:
-        df = fetch_openaq_historical(s["name"], s["lat"], s["lon"], days_back=7)
+    for station in nearby_stations:
+        df = fetch_openaq_historical(station["name"], station["lat"], station["lon"], days_back=7)
         if df.empty or "aqi" not in df.columns or pd.isna(df["aqi"].iloc[-1]):
             continue
-        stations_data.append({
-            "name": s["name"], "ward": s["name"], "lat": s["lat"], "lon": s["lon"],
-            "aqi": int(df["aqi"].iloc[-1]), "distance_km": s["distance_km"],
-        })
+        stations_data.append({"name": station["name"], "ward": station["name"], "lat": station["lat"],
+            "lon": station["lon"], "aqi": int(df["aqi"].iloc[-1]), "distance_km": station["distance_km"]})
+    if not stations_data:
+        return {"status": "evidence_unavailable", "evidence_status": "unavailable",
+                "message": "Current observations are unavailable. The platform will not fabricate an enforcement recommendation.",
+                "inspection_tasks": []}
 
-)
+    # This transparent persistence baseline replaces synthetic forecasts in enforcement.
+    forecast_data = {station["name"]: {"aqi_24h": station["aqi"], "aqi_48h": station["aqi"]} for station in stations_data}
+    attribution_data = {station["name"]: weighted_attribution(station["lat"], station["lon"], wind_direction=270, wind_speed=3.5) for station in stations_data}
+    result = enforcement_agent.generate_daily_action_list(
+        stations_data, forecast_data, attribution_data, {"wind_speed": 3.5, "wind_direction": 270, "temperature": 25})
+    worst_aqi = max(station["aqi"] for station in stations_data)
+    return {
+        "status": "ok",
+        "evidence_status": "observed_aqi_persistence_baseline",
+        "evidence_note": "Priorities use current observed AQI, heuristic attribution, and a persistence baseline. A human must verify field evidence before enforcement.",
+        "query_coordinates": {"lat": req.lat, "lon": req.lon},
+        "radius_km": req.radius_km, "nearest_city": _nearest_city(req.lat, req.lon),
+        "stations_found": len(stations_data),
+        "concrete_recommendation": result["actions"][0]["recommended_action"] if result["actions"] else "No action required",
+        "inspection_tasks": result["actions"],
+        "citizen_advisory": advisory_agent.get_advisory(worst_aqi, req.language),
+        "agent_notes": "Decision-support report: observed stations and a persistence baseline; attribution requires field verification.",
+    }
+
+def _nearest_city(lat: float, lon: float) -> str:
+    cities = {"Delhi": (28.6139, 77.2090), "Mumbai": (19.0760, 72.8777),
+              "Kolkata": (22.5726, 88.3639), "Bengaluru": (12.9716, 77.5946),
+              "Chennai": (13.0827, 80.2707)}
+    best, best_dist = "Delhi", float("inf")
+    for name, (clat, clon) in cities.items():
+        d = math.sqrt(((clat - lat) * 111.0)**2 + ((clon - lon) * 111.0 * math.cos(math.radians((clat + lat) / 2)))**2)
+        if d < best_dist:
+            best_dist, best = d, name
+    return best
+
+
+def _synthetic_enforcement(req: EnforceRequest) -> dict:
+    """Fallback enforcement when no stations nearby."""
+    nearest = _nearest_city(req.lat, req.lon)
+    attr = weighted_attribution(req.lat, req.lon)
+    advisory = advisory_agent.get_advisory(200, req.language)
+
+    return {
+        "status": "ok",
+        "query_coordinates": {"lat": req.lat, "lon": req.lon},
+        "radius_km": req.radius_km,
+        "nearest_city": nearest,
+        "stations_found": 0,
+        "total_plume_contribution_ugm3": 0.0,
+        "detected_source_names": [],
+        "concrete_recommendation": f"Routine monitoring zone. No CAAQMS stations within {req.radius_km}km. Recommend deploying mobile monitoring unit.",
+        "citizen_advisory": advisory,
+        "inspection_tasks": [],
+        "agent_notes": (
+            "Multi-Agent System Report:\n"
+            f"  • Geo-Agent: No CPCB stations within {req.radius_km}km of query point.\n"
+            "  • Attribution Agent: General area characterization only.\n"
+            "  • Enforcement Agent: No enforcement actions generated.\n"
+            f"  • Nearest city: {nearest}\n"
+            "  • Recommendation: Deploy mobile monitoring unit for baseline data."
+        ),
+    }
+
+
+@app.get("/api/advisory/{station}")
+def get_station_advisory(station: str, language: str = Query("en")):
+    """Get citizen health advisory for a station in the requested language."""
+    df = fetch_openaq_historical(station, 28.6, 77.2, days_back=7)
+    if df.empty or "aqi" not in df.columns or pd.isna(df["aqi"].iloc[-1]):
+        return {"status": "evidence_unavailable", "station": station,
+                "message": "No current observation is available for a health advisory."}
+    advisory = advisory_agent.get_advisory(int(df["aqi"].iloc[-1]), language)
+    return {"status": "ok", "station": station, "evidence_status": "observed", **advisory}
+
+
+@app.post("/api/train")
+def trigger_training():
+    """Trigger model training for all Delhi stations."""
+    print("[TRAIN] Loading data...")
+    df = load_all_delhi_data(days_back=365)
+    df_weather = fetch_weather_historical(DELHI_LAT, DELHI_LON, days_back=365)
+
+    results = []
+    for s in DELHI_STATIONS:
+        df_s = df[df["station"] == s["name"]] if "station" in df.columns else df
+        result = train_lightgbm_station(s["name"], df_s, df_weather)
+        if result:
+            results.append({
+                "station": s["name"],
+                "test_rmse": result["metadata"]["test_rmse"],
+                "persistence_rmse": result["metadata"]["persistence_rmse"],
+                "improvement_pct": result["metadata"]["improvement_pct"],
+                "n_train": result["metadata"]["n_train"],
+            })
+
+    avg_improvement = np.mean([r["improvement_pct"] for r in results]) if results else 0
+    return {
+        "status": "ok",
+        "stations_trained": len(results),
+        "results": results,
+        "average_improvement_vs_persistence_pct": round(avg_improvement, 1),
+    }
+
+
+@app.get("/api/models/status")
+def model_status():
+    """Check which stations have trained models."""
+    from forecast.engine import MODELS_DIR
+    models = []
+    for f in os.listdir(MODELS_DIR):
+        if f.endswith(".pkl"):
+            station = f.replace("lgb_", "").replace(".pkl", "").replace("_", " ").title()
+            path = os.path.join(MODELS_DIR, f)
+            models.append({
+                "station": station,
+                "file": f,
+                "size_kb": round(os.path.getsize(path) / 1024, 1),
+                "trained": True,
+            })
+    return {"status": "ok", "models": models, "total": len(models)}
+
+
+@app.get("/api/metadata")
+def platform_metadata():
+    """Return platform metadata for the demo deck."""
+    return {
+        "data_sources": [
+            "OpenAQ API (aggregates CPCB CAAQMS data)",
+            "Open-Meteo API (weather forecasts, free, no key)",
+            "NASA FIRMS VIIRS (active fire detections)",
+            "OpenStreetMap (land-use, road networks)",
+        ],
+        "forecast_model": "LightGBM per-station with 24 features",
+        "features": [
+            "AQI lags (1h-72h)",
+            "Open-Meteo forecast variables (wind, temp, humidity, pressure, BLH)",
+            "Temporal features (hour, dayofweek, month, season)",
+            "Rolling statistics (24h mean, 7d mean, rate of change)",
+        ],
+        "validation": "Held-out last 21 days, RMSE vs persistence baseline ('tomorrow = today')",
+        "attribution_method": "Wind-sector × land-use intersection with distance-weighted proximity scoring",
+        "agent_architecture": "LangGraph-inspired chain: Forecast → Attribution → Enforcement → Advisory",
+        "cities_supported": ["Delhi", "Mumbai"],
+        "stations_delhi": len(DELHI_STATIONS),
+        "stations_mumbai": len(MUMBAI_STATIONS),
+        "languages": ["English", "Hindi", "Kannada", "Tamil"],
+    }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    print("=" * 60)
+    print("Urban Air Quality Intelligence Platform")
+    print("=" * 60)
+    print(f"Delhi stations: {len(DELHI_STATIONS)}")
+    print(f"Mumbai stations: {len(MUMBAI_STATIONS)}")
+    print("Starting server...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
