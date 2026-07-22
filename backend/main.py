@@ -429,7 +429,7 @@ def readiness_status():
     registry = registry_status()
     return {
         "status": "ok",
-        "mode": "live_ready" if OPENAQ_API_KEY and registry.get("verified_sources", 0) else "onboarding_required",
+        "mode": "live_ready" if OPENAQ_API_KEY and registry.get("verified_source_count", 0) else "onboarding_required",
         "observations": {
             "provider": "OpenAQ v3",
             "configured": bool(OPENAQ_API_KEY),
