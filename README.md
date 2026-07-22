@@ -78,3 +78,15 @@ Python, FastAPI, pandas, NumPy, scikit-learn, LightGBM, Open-Meteo, OpenAQ, Reac
 ## Submission narrative
 
 **AQI Sentinel converts a pollution signal into an evidence-backed intervention plan before it becomes a public-health emergency.**
+
+
+## Submission evidence
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Judging evidence ledger](docs/JUDGING_EVIDENCE.md)
+- [Forecast validation protocol](docs/FORECAST_VALIDATION_PROTOCOL.md)
+- [90-day municipal pilot plan](docs/PILOT_PLAN.md)
+- [Judge Q&A](docs/JUDGE_QA.md)
+- [3-minute demo script](docs/DEMO_SCRIPT.md)
+
+The platform exposes evidence state in the user interface. Unavailable observations are never represented as live data, and inspection priorities always require human field verification.
