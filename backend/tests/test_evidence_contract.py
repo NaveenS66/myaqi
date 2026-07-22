@@ -1,3 +1,4 @@
+
 """Regression guard for demo integrity claims.
 
 These tests intentionally use only the Python standard library so they can run
@@ -20,6 +21,16 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertNotIn("random.randint", section)
         self.assertIn('data_status', section)
         self.assertIn('Unavailable stations are never populated', section)
+
+    def test_ingestion_never_falls_back_to_synthetic_observations(self):
+        source = (ROOT / "backend" / "data_ingestion.py").read_text(encoding="utf-8")
+        start = source.index('def fetch_openaq_historical')
+        end = source.index('def _generate_synthetic_cpcb', start)
+        section = source[start:end]
+        self.assertNotIn("_generate_synthetic_cpcb(", section)
+        self.assertIn("OPENAQ_API_KEY", section)
+        self.assertIn("_empty_observation_frame", section)
+        self.assertIn("_cpcb_pm25_subindex", source)
 
     def test_enforcement_never_uses_synthetic_forecast(self):
         source = (ROOT / "backend" / "main.py").read_text(encoding="utf-8")
@@ -45,3 +56,4 @@ class EvidenceContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
