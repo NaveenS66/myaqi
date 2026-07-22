@@ -18,9 +18,9 @@ const CATEGORY_COLORS = {
 
 const LANGUAGE_OPTIONS = [
   { label: 'English', code: 'en' },
-  { label: 'Hindi (हिन्दी)', code: 'hi' },
-  { label: 'Kannada (ಕನ್ನಡ)', code: 'kn' },
-  { label: 'Tamil (தமிழ்)', code: 'ta' },
+  { label: 'Hindi (à¤¹à¤¿à¤¨à¥à¤¦à¥€)', code: 'hi' },
+  { label: 'Kannada (à²•à²¨à³à²¨à²¡)', code: 'kn' },
+  { label: 'Tamil (à®¤à®®à®¿à®´à¯)', code: 'ta' },
 ];
 
 const LANGUAGE_MAP = { en: 'English', hi: 'Hindi', kn: 'Kannada', ta: 'Tamil' };
@@ -129,10 +129,13 @@ export default function Dashboard() {
         setEnforcementResult(json);
         setSidebarOpen(true);
       } else {
-        setError(json.message || 'Evidence is unavailable for an enforcement recommendation at this location.');
+        setError({
+          severity: 'notice',
+          message: json.message || 'Live evidence is unavailable at this location. No enforcement recommendation was generated.',
+        });
       }
     } catch (err) {
-      setError(`Enforcement error: ${err.message}`);
+      setError({ severity: 'error', message: `Enforcement connection error: ${err.message}` });
     } finally {
       setEnforcing(false);
     }
@@ -153,10 +156,13 @@ export default function Dashboard() {
         setEnforcementResult(json);
         setSidebarOpen(true);
       } else {
-        setError(json.message || 'Evidence is unavailable for an enforcement recommendation at this location.');
+        setError({
+          severity: 'notice',
+          message: json.message || 'Live evidence is unavailable at this location. No enforcement recommendation was generated.',
+        });
       }
     } catch (err) {
-      setError(`Enforcement error: ${err.message}`);
+      setError({ severity: 'error', message: `Enforcement connection error: ${err.message}` });
     } finally {
       setEnforcing(false);
     }
@@ -168,17 +174,17 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-gray-900">
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <header className="bg-gray-800/95 border-b border-gray-700 px-6 py-2.5 flex items-center justify-between shrink-0 backdrop-blur-sm z-10">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-xs font-bold">AQ</div>
           <div>
             <h1 className="text-base font-bold text-white tracking-tight">Urban Air Quality Intelligence</h1>
-            <p className="text-[10px] text-gray-500 -mt-0.5">Station signals · Forecasting · Source attribution · Intervention</p>
+            <p className="text-[10px] text-gray-500 -mt-0.5">Station signals Â· Forecasting Â· Source attribution Â· Intervention</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {loading && <span className="text-gray-400 text-xs animate-pulse">Loading station observations…</span>}
+          {loading && <span className="text-gray-400 text-xs animate-pulse">Loading station observationsâ€¦</span>}
 
           {/* City toggle */}
           <button onClick={toggleMumbai}
@@ -206,13 +212,15 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* ── Main Content ── */}
+      {/* â”€â”€ Main Content â”€â”€ */}
       <div className="flex flex-1 overflow-hidden">
         <div className={`flex-1 relative transition-all duration-300 ${sidebarOpen ? 'w-2/3' : 'w-full'}`}>
           {error && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-red-600/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm shadow-lg">
-              {error}
-              <button onClick={() => setError(null)} className="ml-3 text-white/70 hover:text-white">✕</button>
+            <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-[1000] backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm shadow-lg ${
+              error.severity === 'notice' ? 'bg-amber-600/90' : 'bg-red-600/90'
+            }`}>
+              {error.message}
+              <button onClick={() => setError(null)} className="ml-3 text-white/70 hover:text-white">âœ•</button>
             </div>
           )}
 
@@ -234,13 +242,13 @@ export default function Dashboard() {
             <div className="absolute inset-0 z-[500] bg-black/40 flex items-center justify-center">
               <div className="bg-gray-800 rounded-xl px-8 py-6 shadow-2xl border border-gray-700 text-center">
                 <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-3" />
-                <p className="text-gray-300 text-sm">Running agent pipeline: Forecast → Attribution → Enforcement → Advisory</p>
+                <p className="text-gray-300 text-sm">Running agent pipeline: Forecast â†’ Attribution â†’ Enforcement â†’ Advisory</p>
               </div>
             </div>
           )}
         </div>
 
-        {/* ── Sidebar ── */}
+        {/* â”€â”€ Sidebar â”€â”€ */}
         {sidebarOpen && (
           <aside className="w-[440px] bg-gray-800 border-l border-gray-700 flex flex-col overflow-hidden shrink-0">
             <div className="flex-1 overflow-y-auto sidebar-scroll">
@@ -272,7 +280,7 @@ export default function Dashboard() {
                             <span className="text-sm font-bold"
                               style={{ color: w.aqi <= 50 ? '#00E400' : w.aqi <= 100 ? '#FFFF00' :
                                 w.aqi <= 150 ? '#FF7E00' : w.aqi <= 200 ? '#FF0000' : w.aqi <= 300 ? '#8F3F97' : '#7E0023' }}>
-                              {w.data_status === 'observed' ? w.aqi : '—'}
+                              {w.data_status === 'observed' ? w.aqi : 'â€”'}
                             </span>
                             <span className={`text-[9px] px-1 py-0.5 rounded font-medium ${CATEGORY_COLORS[w.category] || 'bg-gray-500 text-white'}`}>
                               {w.data_status === 'observed' ? (w.category === 'Unhealthy for Sensitive Groups' ? 'Sensitive' : w.category) : 'No live data'}
@@ -289,7 +297,7 @@ export default function Dashboard() {
               <div className="p-4">
                 <h2 className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
                   AI Enforcement Insights
-                  {activeStation && <span className="text-blue-400 normal-case ml-1.5">· {activeStation}</span>}
+                  {activeStation && <span className="text-blue-400 normal-case ml-1.5">Â· {activeStation}</span>}
                 </h2>
 
                 {!enforcementResult && !enforcing && (
@@ -298,7 +306,7 @@ export default function Dashboard() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                     </svg>
                     <p className="text-xs">Click a station marker or anywhere on the map</p>
-                    <p className="text-[10px] text-gray-600 mt-0.5">Signal → Attribution → Enforcement → Advisory in ~90s</p>
+                    <p className="text-[10px] text-gray-600 mt-0.5">Signal â†’ Attribution â†’ Enforcement â†’ Advisory in ~90s</p>
                   </div>
                 )}
 
@@ -317,7 +325,7 @@ export default function Dashboard() {
                       <span className="ml-2 text-gray-600">|</span>
                       <strong className="text-gray-300 ml-2">Stations:</strong> {enforcementResult.stations_found}
                       {enforcementResult.total_plume_contribution_ugm3 > 0 && (
-                        <><br /><strong className="text-gray-300">Plume contribution:</strong> {enforcementResult.total_plume_contribution_ugm3.toFixed(1)} µg/m³</>
+                        <><br /><strong className="text-gray-300">Plume contribution:</strong> {enforcementResult.total_plume_contribution_ugm3.toFixed(1)} Âµg/mÂ³</>
                       )}
                     </div>
 
@@ -325,10 +333,10 @@ export default function Dashboard() {
                     {enforcementResult.citizen_advisory && (
                       <div className="bg-gradient-to-r from-red-900/40 via-red-800/30 to-red-900/40 rounded-lg p-2.5 border border-red-800/40">
                         <div className="flex items-start gap-2">
-                          <span className="text-red-400 text-sm shrink-0">🫁</span>
+                          <span className="text-red-400 text-sm shrink-0">ðŸ«</span>
                           <div>
                             <p className="text-[10px] text-red-300 font-medium uppercase tracking-wider">
-                              {enforcementResult.citizen_advisory.level} · {LANGUAGE_MAP[advisory?.language] || 'English'}
+                              {enforcementResult.citizen_advisory.level} Â· {LANGUAGE_MAP[advisory?.language] || 'English'}
                             </p>
                             <p className="text-xs text-red-100/90">{enforcementResult.citizen_advisory.message}</p>
                           </div>
@@ -360,7 +368,7 @@ export default function Dashboard() {
                             <div className="flex items-start justify-between mb-1.5">
                               <div>
                                 <p className="text-xs font-semibold text-gray-200">{task.station_name}</p>
-                                <p className="text-[10px] text-gray-500">AQI {task.current_aqi} → {task.forecast_aqi_48h} in 48h</p>
+                                <p className="text-[10px] text-gray-500">AQI {task.current_aqi} â†’ {task.forecast_aqi_48h} in 48h</p>
                               </div>
                               <div className="flex items-center gap-1.5">
                                 <RiskBadge level={task.risk_level} />
@@ -373,7 +381,7 @@ export default function Dashboard() {
                             {/* Trend indicator */}
                             <div className="mb-1.5 flex items-center gap-2 text-[10px]">
                               <span className={`font-medium ${task.aqi_trend === 'rising' ? 'text-red-400' : task.aqi_trend === 'falling' ? 'text-green-400' : 'text-gray-400'}`}>
-                                {task.aqi_trend === 'rising' ? '↑ Rising' : task.aqi_trend === 'falling' ? '↓ Falling' : '→ Stable'}
+                                {task.aqi_trend === 'rising' ? 'â†‘ Rising' : task.aqi_trend === 'falling' ? 'â†“ Falling' : 'â†’ Stable'}
                               </span>
                               <span className="text-gray-600">|</span>
                               <span className="text-gray-500">Source: <strong className="text-gray-300 capitalize">{task.dominant_source}</strong></span>
@@ -393,11 +401,11 @@ export default function Dashboard() {
                             {/* Officer note (LLM narrative) */}
                             <details className="group mt-1.5">
                               <summary className="text-[10px] text-blue-400 cursor-pointer hover:text-blue-300 select-none">
-                                View officer narrative →
+                                View officer narrative â†’
                               </summary>
                               <p className="mt-1 text-[10px] text-gray-400 leading-relaxed">{task.officer_note}</p>
                               <p className="text-[9px] text-gray-600 mt-1">
-                                {task.legal_reference} · Respond within {task.response_timeframe}
+                                {task.legal_reference} Â· Respond within {task.response_timeframe}
                               </p>
                             </details>
                           </div>
@@ -434,12 +442,12 @@ export default function Dashboard() {
                         </div>
                         {forecastData?.metadata?.data_status === 'demo_synthetic' && (
                           <p className="text-[10px] leading-relaxed text-amber-300/80 mb-2">
-                            Demo fallback — interactive scenario, not a validated forecast.
+                            Demo fallback â€” interactive scenario, not a validated forecast.
                           </p>
                         )}
                         {forecastData?.metadata?.metrics_status === 'measured_holdout' && (
                           <p className="text-[10px] leading-relaxed text-emerald-300/80 mb-2">
-                            Held-out RMSE: {forecastData.metadata.model_rmse} · Persistence: {forecastData.metadata.persistence_rmse}
+                            Held-out RMSE: {forecastData.metadata.model_rmse} Â· Persistence: {forecastData.metadata.persistence_rmse}
                           </p>
                         )}
                         <div className="relative h-12">
@@ -493,3 +501,4 @@ export default function Dashboard() {
     </div>
   );
 }
+
