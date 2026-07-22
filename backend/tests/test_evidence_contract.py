@@ -74,6 +74,11 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertIn('verification_status") != "verified"', registry)
         self.assertIn("provenance_url", registry)
 
+    def test_readiness_uses_registry_count_contract(self):
+        source = (ROOT / "backend" / "main.py").read_text(encoding="utf-8")
+        section = source[source.index('def readiness_status'):]
+        self.assertIn('registry.get("verified_source_count", 0)', section)
+
 
 if __name__ == "__main__":
     unittest.main()
