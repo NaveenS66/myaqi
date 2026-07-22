@@ -186,6 +186,8 @@ def weighted_attribution(
             key=lambda x: x[1]
         )[0],
         "overall_confidence": confidence,
+        "evidence_status": "heuristic_registry_with_seasonal_fire_proxy",
+        "verification_required": True,
         "wind_sector": upwind,
         "wind_sector_label": SECTOR_LAND_USE[upwind]["label"],
         "detected_industry_sources": industry_sources[:3],
@@ -194,8 +196,8 @@ def weighted_attribution(
             "Wind-sector attribution: upwind sector intersected with land-use layers "
             "(OpenStreetMap roads, industrial clusters, construction zones, "
             "NASA FIRMS fire detections). Distance-weighted proximity scoring. "
-            "Cross-validated against Sentinel-5P NO₂ (traffic/industry signature) "
-            "and aerosol optical depth (burning/dust signature)."
+            "This prototype uses a static source registry and a seasonal fire proxy; "
+            "it is an inspection-prioritisation hypothesis, not causal attribution."
         ),
     }
 
@@ -203,9 +205,9 @@ def weighted_attribution(
 def estimate_fire_count(lat: float, lon: float, radius_km: float = 50) -> int:
     """
     Estimate number of active fire detections (NASA FIRMS VIIRS) upwind.
-    Uses mock data based on typical seasonal patterns for Delhi.
+    Uses a seasonal proxy only; this is not a live NASA FIRMS query.
     """
-    # Mock: higher in Oct-Nov (stubble burning season)
+    # Seasonal proxy: higher in Oct-Nov (stubble burning season).
     month = datetime.now().month
     if month in (10, 11):
         base = 15  # peak stubble burning
