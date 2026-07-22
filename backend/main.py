@@ -57,6 +57,9 @@ from agents.enforcement_agent import (
     EnforcementAction
 )
 from source_registry import load_verified_sources, registry_status
+from demo_scenario import SCENARIO_AQI, scenario_rows, scenario_forecast
+
+DEMO_SCENARIO_ENABLED = os.getenv("AQI_DEMO_SCENARIO", "false").lower() in {"1", "true", "yes"}
 
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Initialize agents (singletons)
@@ -124,6 +127,15 @@ def get_current_aqi(city: Optional[str] = Query(None)):
     else:
         city_sets = [("Delhi", DELHI_STATIONS), ("Mumbai", MUMBAI_STATIONS)]
 
+    if DEMO_SCENARIO_ENABLED:
+        demo_data = {city_name: scenario_rows(stations, aqi_category) for city_name, stations in city_sets}
+        return {
+            "status": "ok", "data": demo_data if not city else demo_data[city_sets[0][0]],
+            "source": "Deterministic demo scenario â€” not live observations",
+            "data_status": "demo_scenario",
+            "note": "Demo values are for workflow demonstration only and must not be presented as observed AQI.",
+        }
+
     all_data, any_live = {}, False
     for city_name, stations in city_sets:
         rows = []
@@ -169,6 +181,10 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     Get 24-72 hour hyperlocal AQI forecast for a station.
     Uses LightGBM model trained on 12+ months of CPCB data.
     """
+    if DEMO_SCENARIO_ENABLED:
+        return {"status": "ok", "station": station, "forecast": scenario_forecast(station, hours, aqi_category),
+                "metadata": {"model": "Deterministic demo scenario", "data_status": "demo_scenario",
+                             "note": "Not a measured or validated forecast.", "metrics_status": "not_applicable"}}
     # Try to load pre-trained model
     model_data = load_model(station)
     if model_data is None:
@@ -263,6 +279,24 @@ def get_attribution(req: AttributionRequest):
 @app.post("/api/agent/enforce")
 def enforce_agent(req: EnforceRequest):
     """Generate transparent, human-reviewed inspection priorities."""
+    if DEMO_SCENARIO_ENABLED:
+        station = "Anand Vihar" if req.lat > 28.62 else "ITO"
+        current = SCENARIO_AQI.get(station, 220)
+        task = {
+            "station_name": station, "current_aqi": current, "forecast_aqi_48h": current + 18,
+            "risk_level": "HIGH", "priority_score": 89, "aqi_trend": "rising",
+            "dominant_source": "traffic", "attribution_confidence": 0.64,
+            "source_breakdown": {"traffic": {"percentage": 46, "confidence": 0.64}, "construction": {"percentage": 29, "confidence": 0.51}, "industry": {"percentage": 25, "confidence": 0.43}},
+            "recommended_action": "Deploy a joint traffic and construction inspection team; verify idling, dust-control, and permit compliance.",
+            "officer_note": "Demo scenario: priority is derived from deterministic signals and a simulated source profile.",
+            "legal_reference": "Field verification required", "response_timeframe": "4 hours",
+        }
+        return {"status": "ok", "evidence_status": "demo_scenario", "evidence_note": "Deterministic scenario for demonstration only; not a live enforcement recommendation.",
+                "query_coordinates": {"lat": req.lat, "lon": req.lon}, "radius_km": req.radius_km,
+                "nearest_city": _nearest_city(req.lat, req.lon), "stations_found": 1,
+                "concrete_recommendation": task["recommended_action"], "inspection_tasks": [task],
+                "citizen_advisory": advisory_agent.get_advisory(current, req.language),
+                "agent_notes": "DEMO SCENARIO MODE â€” live source registry and observed AQI are not used."}
     all_stations = DELHI_STATIONS + MUMBAI_STATIONS
     nearby_stations = []
     for station in all_stations:
