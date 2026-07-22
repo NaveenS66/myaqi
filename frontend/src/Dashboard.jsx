@@ -279,10 +279,10 @@ export default function Dashboard() {
                             <span className="text-sm font-bold"
                               style={{ color: w.aqi <= 50 ? '#00E400' : w.aqi <= 100 ? '#FFFF00' :
                                 w.aqi <= 150 ? '#FF7E00' : w.aqi <= 200 ? '#FF0000' : w.aqi <= 300 ? '#8F3F97' : '#7E0023' }}>
-                              {w.data_status === 'observed' ? w.aqi : 'â€”'}
+                              {w.aqi != null ? w.aqi : 'â€”'}
                             </span>
                             <span className={`text-[9px] px-1 py-0.5 rounded font-medium ${CATEGORY_COLORS[w.category] || 'bg-gray-500 text-white'}`}>
-                              {w.data_status === 'observed' ? (w.category === 'Unhealthy for Sensitive Groups' ? 'Sensitive' : w.category) : 'No live data'}
+                              {w.data_status === 'demo_scenario' ? 'Demo scenario' : w.aqi != null ? (w.category === 'Unhealthy for Sensitive Groups' ? 'Sensitive' : w.category) : 'No live data'}
                             </span>
                           </div>
                         </div>
