@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.7 seconds
-Output:
 """Regression guard for demo integrity claims.
 
 These tests intentionally use only the Python standard library so they can run
