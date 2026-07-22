@@ -65,6 +65,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [enforcing, setEnforcing] = useState(false);
   const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [advisory, setAdvisory] = useState(null);
@@ -118,6 +119,7 @@ export default function Dashboard() {
     setActiveStation(stationName);
     setEnforcing(true);
     setEnforcementResult(null);
+    setNotice(null);
     try {
       const res = await fetch(ENFORCE_API, {
         method: 'POST',
@@ -129,10 +131,8 @@ export default function Dashboard() {
         setEnforcementResult(json);
         setSidebarOpen(true);
       } else {
-        setError({
-          severity: 'notice',
-          message: json.message || 'Live evidence is unavailable at this location. No enforcement recommendation was generated.',
-        });
+        setNotice(json.message || 'Live evidence is unavailable at this location. No enforcement recommendation was generated.');
+        setSidebarOpen(true);
       }
     } catch (err) {
       setError({ severity: 'error', message: `Enforcement connection error: ${err.message}` });
@@ -145,6 +145,7 @@ export default function Dashboard() {
   const handleEnforceTrigger = useCallback(async (latlng) => {
     setEnforcing(true);
     setEnforcementResult(null);
+    setNotice(null);
     try {
       const res = await fetch(ENFORCE_API, {
         method: 'POST',
@@ -156,10 +157,8 @@ export default function Dashboard() {
         setEnforcementResult(json);
         setSidebarOpen(true);
       } else {
-        setError({
-          severity: 'notice',
-          message: json.message || 'Live evidence is unavailable at this location. No enforcement recommendation was generated.',
-        });
+        setNotice(json.message || 'Live evidence is unavailable at this location. No enforcement recommendation was generated.');
+        setSidebarOpen(true);
       }
     } catch (err) {
       setError({ severity: 'error', message: `Enforcement connection error: ${err.message}` });
@@ -299,6 +298,12 @@ export default function Dashboard() {
                   AI Enforcement Insights
                   {activeStation && <span className="text-blue-400 normal-case ml-1.5">Â· {activeStation}</span>}
                 </h2>
+
+                {notice && (
+                  <div className="mb-3 rounded-lg border border-amber-700/60 bg-amber-900/20 px-3 py-2 text-[11px] leading-relaxed text-amber-200">
+                    <strong>Evidence unavailable:</strong> {notice}
+                  </div>
+                )}
 
                 {!enforcementResult && !enforcing && (
                   <div className="text-center py-8 text-gray-500">
