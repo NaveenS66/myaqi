@@ -128,6 +128,8 @@ export default function Dashboard() {
       if (json.status === 'ok') {
         setEnforcementResult(json);
         setSidebarOpen(true);
+      } else {
+        setError(json.message || 'Evidence is unavailable for an enforcement recommendation at this location.');
       }
     } catch (err) {
       setError(`Enforcement error: ${err.message}`);
@@ -150,6 +152,8 @@ export default function Dashboard() {
       if (json.status === 'ok') {
         setEnforcementResult(json);
         setSidebarOpen(true);
+      } else {
+        setError(json.message || 'Evidence is unavailable for an enforcement recommendation at this location.');
       }
     } catch (err) {
       setError(`Enforcement error: ${err.message}`);
