@@ -174,7 +174,7 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          {loading && <span className="text-gray-400 text-xs animate-pulse">Loading CPCB data…</span>}
+          {loading && <span className="text-gray-400 text-xs animate-pulse">Loading station observations…</span>}
 
           {/* City toggle */}
           <button onClick={toggleMumbai}
@@ -209,6 +209,13 @@ export default function Dashboard() {
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-red-600/90 backdrop-blur-sm text-white px-4 py-2 rounded-lg text-sm shadow-lg">
               {error}
               <button onClick={() => setError(null)} className="ml-3 text-white/70 hover:text-white">✕</button>
+            </div>
+          )}
+
+          {aqiData && (
+            <div className="absolute top-3 left-3 z-[700] max-w-sm rounded-lg border border-slate-600 bg-slate-900/95 px-3 py-2 text-[10px] text-slate-300 shadow-lg">
+              <strong className="text-slate-100">Evidence-aware demo</strong>
+              <span className="ml-1">Observed stations are shown as data arrives; unavailable values are never simulated as live readings.</span>
             </div>
           )}
 
@@ -261,10 +268,10 @@ export default function Dashboard() {
                             <span className="text-sm font-bold"
                               style={{ color: w.aqi <= 50 ? '#00E400' : w.aqi <= 100 ? '#FFFF00' :
                                 w.aqi <= 150 ? '#FF7E00' : w.aqi <= 200 ? '#FF0000' : w.aqi <= 300 ? '#8F3F97' : '#7E0023' }}>
-                              {w.aqi}
+                              {w.data_status === 'observed' ? w.aqi : '—'}
                             </span>
                             <span className={`text-[9px] px-1 py-0.5 rounded font-medium ${CATEGORY_COLORS[w.category] || 'bg-gray-500 text-white'}`}>
-                              {w.category === 'Unhealthy for Sensitive Groups' ? 'Sensitive' : w.category}
+                              {w.data_status === 'observed' ? (w.category === 'Unhealthy for Sensitive Groups' ? 'Sensitive' : w.category) : 'No live data'}
                             </span>
                           </div>
                         </div>
@@ -293,6 +300,11 @@ export default function Dashboard() {
 
                 {enforcementResult && (
                   <div className="space-y-3">
+                    {/* Evidence status */}
+                    <div className={`rounded-lg border p-2.5 text-[11px] ${enforcementResult.evidence_status === 'persistence_baseline' ? 'border-amber-800/60 bg-amber-900/20 text-amber-200' : 'border-emerald-800/60 bg-emerald-900/20 text-emerald-200'}`}>
+                      <strong>Decision-support evidence:</strong> {enforcementResult.evidence_note || 'Field verification is required before enforcement.'}
+                    </div>
+
                     {/* Query Info */}
                     <div className="bg-gray-700/40 rounded-lg p-2.5 text-[11px] text-gray-400">
                       <strong className="text-gray-300">Query point:</strong> {enforcementResult.query_coordinates.lat.toFixed(4)}, {enforcementResult.query_coordinates.lon.toFixed(4)}
