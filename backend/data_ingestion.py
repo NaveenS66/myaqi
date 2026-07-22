@@ -11,9 +11,9 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 import requests
 
-# ──────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Delhi CAAQMS Stations (real CPCB stations)
-# ──────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 DELHI_STATIONS = [
     {"name": "Anand Vihar", "id": "anand-vihar", "lat": 28.646, "lon": 77.315},
     {"name": "RK Puram", "id": "rk-puram", "lat": 28.567, "lon": 77.180},
@@ -40,21 +40,36 @@ MUMBAI_STATIONS = [
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), "data")
 os.makedirs(CACHE_DIR, exist_ok=True)
+OPENAQ_API_KEY = os.getenv("OPENAQ_API_KEY")
+
+
+def _empty_observation_frame() -> pd.DataFrame:
+    """Return an explicitly empty observation frame; never fabricate evidence."""
+    return pd.DataFrame(columns=[
+        "station", "lat", "lon", "timestamp", "aqi", "pm25", "pm10", "no2", "o3",
+        "category", "data_origin",
+    ])
 
 
 def fetch_openaq_historical(station_name: str, lat: float, lon: float,
                             days_back: int = 365) -> pd.DataFrame:
     """
-    Fetch historical AQI data from OpenAQ API.
-    Falls back to synthetic data if API unavailable (for demo robustness).
+    Fetch verified historical observations from OpenAQ API v3.
+
+    A missing provider response is an unavailable observation, never synthetic
+    AQI. Set OPENAQ_API_KEY for live v3 access. Cached rows are accepted only
+    when they retain the observed_openaq provenance marker.
     """
     cache_file = os.path.join(CACHE_DIR, f"openaq_{station_name.lower().replace(' ','_')}.csv")
 
     # Try loading cache
     if os.path.exists(cache_file):
         df = pd.read_csv(cache_file, parse_dates=["timestamp"])
-        min_date = pd.to_datetime(df["timestamp"].min())
-        if min_date >= pd.to_datetime(datetime.now() - timedelta(days=days_back - 30)):
+        min_date = pd.to_datetime(df["timestamp"].min()) if not df.empty else None
+        provenance_ok = "data_origin" in df.columns and all(
+            str(origin).startswith("observed_openaq") for origin in df["data_origin"].dropna()
+        )
+        if provenance_ok and min_date is not None and min_date >= pd.to_datetime(datetime.now() - timedelta(days=days_back - 30)):
             print(f"  [CACHE] Loaded {len(df)} rows for {station_name}")
             return df
 
@@ -64,7 +79,11 @@ def fetch_openaq_historical(station_name: str, lat: float, lon: float,
     # OpenAQ API v3 - fetch by coordinates
     # Use the OpenAQ API since CPCB data is available there
     base_url = "https://api.openaq.org/v3/locations"
-    headers = {"accept": "application/json"}
+    if not OPENAQ_API_KEY:
+        print("    OpenAQ unavailable: set OPENAQ_API_KEY to enable verified observations")
+        return _empty_observation_frame()
+
+    headers = {"accept": "application/json", "X-API-Key": OPENAQ_API_KEY}
 
     try:
         # Find nearest location
@@ -116,21 +135,24 @@ def fetch_openaq_historical(station_name: str, lat: float, lon: float,
             # Map parameter names
             param_map = {"PM2.5": "pm25", "PM10": "pm10", "NO2": "no2", "O3": "o3"}
             pivoted.rename(columns=param_map, inplace=True)
-            # Calculate approximate AQI from PM2.5
+            # Derive the CPCB PM2.5 sub-index from observed concentration.
+            # This remains a provisional AQI proxy because official AQI is the
+            # maximum sub-index across pollutants and uses averaging windows.
             if "pm25" in pivoted.columns and "aqi" not in pivoted.columns:
-                pivoted["aqi"] = pivoted["pm25"].fillna(0) * 1.67  # approximate conversion
-                pivoted["aqi"] = pivoted["aqi"].fillna(0).astype(int)
+                pivoted["aqi"] = pivoted["pm25"].apply(_cpcb_pm25_subindex)
             if "aqi" not in pivoted.columns:
-                pivoted["aqi"] = 200
+                # A location without PM2.5-derived AQI is not suitable for a
+                # scored AQI workflow; do not substitute a made-up number.
+                return _empty_observation_frame()
             pivoted["category"] = pivoted["aqi"].apply(_aqi_category)
+            pivoted["data_origin"] = "observed_openaq_pm25_derived_aqi"
             df = pivoted
         df.to_csv(cache_file, index=False)
         print(f"    Saved {len(df)} rows to cache")
         return df
 
-    # Fallback: generate synthetic data matching real CPCB patterns
-    print(f"    Generating synthetic data for {station_name} (API unavailable)")
-    return _generate_synthetic_cpcb(station_name, lat, lon, days_back, cache_file)
+    print(f"    No verified OpenAQ observations available for {station_name}")
+    return _empty_observation_frame()
 
 
 def _generate_synthetic_cpcb(station_name: str, lat: float, lon: float,
@@ -208,6 +230,21 @@ def _aqi_category(aqi):
     return "Hazardous"
 
 
+def _cpcb_pm25_subindex(value) -> int:
+    """CPCB PM2.5 concentration sub-index, capped to the public AQI scale."""
+    if pd.isna(value) or value < 0:
+        return 0
+    concentration = float(value)
+    breakpoints = [
+        (0, 30, 0, 50), (31, 60, 51, 100), (61, 90, 101, 200),
+        (91, 120, 201, 300), (121, 250, 301, 400), (251, 1000, 401, 500),
+    ]
+    for c_low, c_high, i_low, i_high in breakpoints:
+        if concentration <= c_high:
+            return min(500, round(((i_high - i_low) / (c_high - c_low)) * (concentration - c_low) + i_low))
+    return 500
+
+
 def load_all_delhi_data(days_back: int = 365) -> pd.DataFrame:
     """Load historical data for all Delhi stations."""
     print("[DATA] Loading Delhi station data...")
@@ -216,6 +253,8 @@ def load_all_delhi_data(days_back: int = 365) -> pd.DataFrame:
         df = fetch_openaq_historical(s["name"], s["lat"], s["lon"], days_back)
         if not df.empty:
             all_dfs.append(df)
+    if not all_dfs:
+        return _empty_observation_frame()
     combined = pd.concat(all_dfs, ignore_index=True)
     combined["timestamp"] = pd.to_datetime(combined["timestamp"])
     print(f"[DATA] Total: {len(combined)} rows across {len(DELHI_STATIONS)} stations")
@@ -230,6 +269,8 @@ def load_all_mumbai_data(days_back: int = 365) -> pd.DataFrame:
         df = fetch_openaq_historical(s["name"], s["lat"], s["lon"], days_back)
         if not df.empty:
             all_dfs.append(df)
+    if not all_dfs:
+        return _empty_observation_frame()
     combined = pd.concat(all_dfs, ignore_index=True)
     combined["timestamp"] = pd.to_datetime(combined["timestamp"])
     print(f"[DATA] Total: {len(combined)} rows across {len(MUMBAI_STATIONS)} stations")
@@ -240,3 +281,4 @@ if __name__ == "__main__":
     df = load_all_delhi_data(days_back=365)
     print(df.head())
     print(f"\nDate range: {df['timestamp'].min()} to {df['timestamp'].max()}")
+
