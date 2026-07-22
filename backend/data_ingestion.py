@@ -64,14 +64,19 @@ def fetch_openaq_historical(station_name: str, lat: float, lon: float,
 
     # Try loading cache
     if os.path.exists(cache_file):
-        df = pd.read_csv(cache_file, parse_dates=["timestamp"])
-        min_date = pd.to_datetime(df["timestamp"].min()) if not df.empty else None
-        provenance_ok = "data_origin" in df.columns and all(
-            str(origin).startswith("observed_openaq") for origin in df["data_origin"].dropna()
-        )
-        if provenance_ok and min_date is not None and min_date >= pd.to_datetime(datetime.now() - timedelta(days=days_back - 30)):
-            print(f"  [CACHE] Loaded {len(df)} rows for {station_name}")
-            return df
+        try:
+            df = pd.read_csv(cache_file, parse_dates=["timestamp"])
+            min_date = pd.to_datetime(df["timestamp"].min()) if not df.empty else None
+            provenance_ok = "data_origin" in df.columns and all(
+                str(origin).startswith("observed_openaq") for origin in df["data_origin"].dropna()
+            )
+            if provenance_ok and min_date is not None and min_date >= pd.to_datetime(datetime.now() - timedelta(days=days_back - 30)):
+                print(f"  [CACHE] Loaded {len(df)} rows for {station_name}")
+                return df
+        except (OSError, UnicodeDecodeError, ValueError, pd.errors.ParserError) as exc:
+            # A partial/stale cache is never trusted as evidence and must not
+            # bring down API endpoints. The next provider response replaces it.
+            print(f"  [CACHE] Ignoring unreadable cache for {station_name}: {type(exc).__name__}")
 
     print(f"  [FETCH] Fetching OpenAQ data for {station_name}...")
     all_rows = []
