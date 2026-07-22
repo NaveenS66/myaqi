@@ -53,6 +53,15 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertNotIn("Cross-validated against Sentinel", source)
         self.assertIn("inspection-prioritisation hypothesis", source)
 
+    def test_live_enforcement_requires_verified_registry(self):
+        source = (ROOT / "backend" / "main.py").read_text(encoding="utf-8")
+        section = source[source.index('def enforce_agent'):source.index('def _nearest_city')]
+        self.assertIn("registry_onboarding_required", section)
+        self.assertIn("load_verified_sources", section)
+        registry = (ROOT / "backend" / "source_registry.py").read_text(encoding="utf-8")
+        self.assertIn('verification_status") != "verified"', registry)
+        self.assertIn("provenance_url", registry)
+
 
 if __name__ == "__main__":
     unittest.main()
