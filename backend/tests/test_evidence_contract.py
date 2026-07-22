@@ -76,6 +76,13 @@ class EvidenceContractTests(unittest.TestCase):
         section = source[source.index('def readiness_status'):]
         self.assertIn('registry.get("verified_source_count", 0)', section)
 
+    def test_project_env_loader_exists_without_logging_secret_values(self):
+        source = (ROOT / "backend" / "env_loader.py").read_text(encoding="utf-8")
+        compile(source, "backend/env_loader.py", "exec")
+        self.assertIn(".env", source)
+        self.assertIn("key not in os.environ", source)
+        self.assertNotIn("print(value)", source)
+
 
 if __name__ == "__main__":
     unittest.main()
