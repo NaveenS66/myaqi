@@ -22,8 +22,11 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-# Add backend to path
+# Add backend to path before importing local modules
 sys.path.insert(0, os.path.dirname(__file__))
+from env_loader import load_project_env
+
+load_project_env()
 
 app = FastAPI(title="Urban Air Quality Intelligence Platform",
               description="Real-time AQI forecasting, source attribution, and enforcement intelligence for Indian cities",
