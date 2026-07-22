@@ -13,7 +13,6 @@ import os
 import sys
 import json
 import math
-import random
 import pickle
 import numpy as np
 import pandas as pd
@@ -23,8 +22,11 @@ from pydantic import BaseModel
 from fastapi import FastAPI, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-# Add backend to path
+# Add backend to path before importing local modules
 sys.path.insert(0, os.path.dirname(__file__))
+from env_loader import load_project_env
+
+load_project_env()
 
 app = FastAPI(title="Urban Air Quality Intelligence Platform",
               description="Real-time AQI forecasting, source attribution, and enforcement intelligence for Indian cities",
@@ -33,12 +35,12 @@ app = FastAPI(title="Urban Air Quality Intelligence Platform",
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Import modules
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from data_ingestion import (
     DELHI_STATIONS, MUMBAI_STATIONS,
-    load_all_delhi_data, fetch_openaq_historical
+    load_all_delhi_data, fetch_openaq_historical, OPENAQ_API_KEY
 )
 from weather_fetcher import (
     fetch_weather_historical, fetch_weather_forecast,
@@ -54,10 +56,14 @@ from agents.enforcement_agent import (
     EnforcementAgent, CitizenAdvisoryAgent,
     EnforcementAction
 )
+from source_registry import load_verified_sources, registry_status
+from demo_scenario import SCENARIO_AQI, scenario_rows, scenario_forecast
 
-# ──────────────────────────────────────────────────────────
+DEMO_SCENARIO_ENABLED = os.getenv("AQI_DEMO_SCENARIO", "false").lower() in {"1", "true", "yes"}
+
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Initialize agents (singletons)
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 enforcement_agent = EnforcementAgent()
 advisory_agent = CitizenAdvisoryAgent()
 
@@ -68,9 +74,9 @@ _forecast_cache = {}
 _model_training_status = {}
 
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Pydantic Models
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class EnforceRequest(BaseModel):
     lat: float
@@ -91,9 +97,9 @@ class AttributionRequest(BaseModel):
     wind_speed: Optional[float] = 3.5
 
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Routes
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.get("/")
 def root():
@@ -109,53 +115,58 @@ def root():
 
 @app.get("/api/aqi/current")
 def get_current_aqi(city: Optional[str] = Query(None)):
+    """Return station observations with explicit evidence status.
+
+    An unavailable provider never becomes a fabricated AQI value.
     """
-    Real-time AQI data from OpenAQ/CPCB stations.
-    Returns ward-level data for all stations in the requested city.
-    """
+    city_sets = []
     if city and city.lower() == "delhi":
-        stations = DELHI_STATIONS
+        city_sets = [("Delhi", DELHI_STATIONS)]
     elif city and city.lower() == "mumbai":
-        stations = MUMBAI_STATIONS
+        city_sets = [("Mumbai", MUMBAI_STATIONS)]
     else:
-        # Return both cities
-        all_data = {}
-        for c, sts in [("Delhi", DELHI_STATIONS), ("Mumbai", MUMBAI_STATIONS)]:
-            all_data[c] = []
-            for s in sts:
-                df = fetch_openaq_historical(s["name"], s["lat"], s["lon"], days_back=7)
-                if not df.empty:
-                    latest = df.iloc[-1].to_dict() if "aqi" in df.columns else \
-                             {"aqi": random.randint(100, 300)}
-                    all_data[c].append({
-                        "ward": s["name"], "station": s["name"],
-                        "lat": s["lat"], "lon": s["lon"],
-                        "aqi": latest.get("aqi", random.randint(100, 300)),
-                        "pm25": latest.get("pm25", round(latest.get("aqi", 200) * 0.6, 1)),
-                        "pm10": latest.get("pm10", round(latest.get("aqi", 200) * 0.85, 1)),
-                        "no2": latest.get("no2", round(latest.get("aqi", 200) * 0.3, 1)),
-                        "o3": latest.get("o3", round(latest.get("aqi", 200) * 0.15, 1)),
-                        "category": aqi_category(latest.get("aqi", 200)),
-                        "timestamp": datetime.now().isoformat(),
-                    })
-        return {"status": "ok", "data": all_data, "source": "OpenAQ/CPCB"}
+        city_sets = [("Delhi", DELHI_STATIONS), ("Mumbai", MUMBAI_STATIONS)]
 
-    stations = DELHI_STATIONS if city and city.lower() == "delhi" else MUMBAI_STATIONS
-    result = []
-    for s in stations:
-        df = fetch_openaq_historical(s["name"], s["lat"], s["lon"], days_back=7)
-        aqi_val = int(df["aqi"].iloc[-1]) if not df.empty and "aqi" in df.columns else random.randint(100, 300)
-        result.append({
-            "ward": s["name"], "station": s["name"],
-            "lat": s["lat"], "lon": s["lon"],
-            "aqi": aqi_val,
-            "category": aqi_category(aqi_val),
-            "timestamp": datetime.now().isoformat(),
-        })
-    return {"status": "ok", "data": result, "source": "OpenAQ/CPCB"}
+    if DEMO_SCENARIO_ENABLED:
+        demo_data = {city_name: scenario_rows(stations, aqi_category) for city_name, stations in city_sets}
+        return {
+            "status": "ok", "data": demo_data if not city else demo_data[city_sets[0][0]],
+            "source": "Deterministic demo scenario â€” not live observations",
+            "data_status": "demo_scenario",
+            "note": "Demo values are for workflow demonstration only and must not be presented as observed AQI.",
+        }
 
+    all_data, any_live = {}, False
+    for city_name, stations in city_sets:
+        rows = []
+        for station in stations:
+            df = fetch_openaq_historical(station["name"], station["lat"], station["lon"], days_back=7)
+            has_observation = not df.empty and "aqi" in df.columns and pd.notna(df["aqi"].iloc[-1])
+            aqi_val = int(df["aqi"].iloc[-1]) if has_observation else None
+            data_origin = str(df["data_origin"].iloc[-1]) if has_observation and "data_origin" in df.columns else "unavailable"
+            any_live = any_live or has_observation
+            rows.append({
+                "ward": station["name"], "station": station["name"],
+                "lat": station["lat"], "lon": station["lon"],
+                "aqi": aqi_val,
+                "category": aqi_category(aqi_val) if aqi_val is not None else "Unavailable",
+                "data_status": data_origin if has_observation else "unavailable",
+                "data_origin": data_origin,
+                "timestamp": datetime.now().isoformat(),
+            })
+        all_data[city_name] = rows
+
+    payload = all_data if not city else all_data[city_sets[0][0]]
+    return {
+        "status": "ok",
+        "data": payload,
+        "source": "OpenAQ observed PM2.5 with CPCB sub-index proxy" if any_live else "No current provider observation",
+        "data_status": "observed_or_unavailable",
+        "note": "Unavailable stations are never populated with synthetic AQI values.",
+    }
 
 def aqi_category(aqi):
+    if aqi is None: return "Unavailable"
     if aqi <= 50: return "Good"
     if aqi <= 100: return "Moderate"
     if aqi <= 150: return "Unhealthy for Sensitive Groups"
@@ -170,6 +181,10 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     Get 24-72 hour hyperlocal AQI forecast for a station.
     Uses LightGBM model trained on 12+ months of CPCB data.
     """
+    if DEMO_SCENARIO_ENABLED:
+        return {"status": "ok", "station": station, "forecast": scenario_forecast(station, hours, aqi_category),
+                "metadata": {"model": "Deterministic demo scenario", "data_status": "demo_scenario",
+                             "note": "Not a measured or validated forecast.", "metrics_status": "not_applicable"}}
     # Try to load pre-trained model
     model_data = load_model(station)
     if model_data is None:
@@ -185,9 +200,8 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
                         model_data = load_model(station)
         except Exception as e:
             print(f"    Training attempt failed: {e}")
-        # Fallback to synthetic forecast
         if model_data is None:
-            return _synthetic_forecast(station, hours)
+            return _forecast_unavailable(station, "No validated station model is available. Add verified observations and retrain before serving a forecast.")
 
     # Generate forecast
     df_recent = fetch_openaq_historical(station, 28.6, 77.2, days_back=7)
@@ -195,7 +209,7 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     fc_df = generate_forecast(station, df_recent, weather_fc, hours=hours)
 
     if fc_df.empty:
-        return _synthetic_forecast(station, hours)
+        return _forecast_unavailable(station, "Verified recent observations or weather forecast are unavailable; no forecast was generated.")
 
     # Report only the held-out metrics calculated during model training.
     # Forecast variation is not an accuracy metric and must never be shown as RMSE.
@@ -222,29 +236,18 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     }
 
 
-def _synthetic_forecast(station: str, hours: int) -> dict:
-    """Generate synthetic forecast when model/data unavailable."""
-    now = datetime.now()
-    base = {"Anand Vihar": 280, "ITO": 250, "RK Puram": 220}.get(station, 200)
-    fc = []
-    for h in range(1, hours + 1):
-        ts = now + timedelta(hours=h)
-        diurnal = 1 + 0.2 * math.sin(math.radians(ts.hour * 15 - 90))
-        fc.append({
-            "timestamp": ts.isoformat(),
-            "station": station,
-            "aqi": max(0, int(base * diurnal + random.randint(-20, 20))),
-            "forecast_hour": h,
-        })
+def _forecast_unavailable(station: str, reason: str) -> dict:
+    """Return an explicit evidence gap instead of a plausible-looking forecast."""
     return {
-        "status": "ok",
+        "status": "evidence_unavailable",
         "station": station,
-        "forecast": fc,
+        "forecast": [],
         "metadata": {
-            "model": "Synthetic demo fallback",
-            "data_status": "demo_synthetic",
-            "note": "This forecast is generated for interaction continuity and is not a measured model result.",
-        }
+            "model": None,
+            "data_status": "unavailable",
+            "note": reason,
+            "remediation": "Configure OPENAQ_API_KEY, ingest verified station history, and run /api/train.",
+        },
     }
 
 
@@ -255,107 +258,101 @@ def get_attribution(req: AttributionRequest):
     Returns percentage breakdown by source category with confidence scores.
     Uses wind sector analysis + land-use data + satellite fire detections.
     """
+    verified_sources = load_verified_sources()
+    if not verified_sources:
+        return {
+            "status": "evidence_unavailable",
+            "message": "Verified source registry onboarding is required before live attribution.",
+            "registry": registry_status(),
+        }
     fire_count = estimate_fire_count(req.lat, req.lon)
     result = weighted_attribution(
         req.lat, req.lon,
         wind_direction=req.wind_direction,
         wind_speed=req.wind_speed,
         fire_count_upwind=fire_count,
+        registry_sources=verified_sources,
     )
     return {"status": "ok", **result}
 
 
 @app.post("/api/agent/enforce")
 def enforce_agent(req: EnforceRequest):
-    """
-    Multi-agent enforcement pipeline:
-    1. Forecast Agent → detects AQI hotspots
-    2. Attribution Agent → identifies source breakdown
-    3. Enforcement Agent → generates ranked action list
-    4. Advisory Agent → generates citizen alerts
-    """
-    # Find nearest stations
+    """Generate transparent, human-reviewed inspection priorities."""
+    if DEMO_SCENARIO_ENABLED:
+        station = "Anand Vihar" if req.lat > 28.62 else "ITO"
+        current = SCENARIO_AQI.get(station, 220)
+        task = {
+            "station_name": station, "current_aqi": current, "forecast_aqi_48h": current + 18,
+            "risk_level": "HIGH", "priority_score": 89, "aqi_trend": "rising",
+            "dominant_source": "traffic", "attribution_confidence": 0.64,
+            "source_breakdown": {"traffic": {"percentage": 46, "confidence": 0.64}, "construction": {"percentage": 29, "confidence": 0.51}, "industry": {"percentage": 25, "confidence": 0.43}},
+            "recommended_action": "Deploy a joint traffic and construction inspection team; verify idling, dust-control, and permit compliance.",
+            "officer_note": "Demo scenario: priority is derived from deterministic signals and a simulated source profile.",
+            "legal_reference": "Field verification required", "response_timeframe": "4 hours",
+        }
+        return {"status": "ok", "evidence_status": "demo_scenario", "evidence_note": "Deterministic scenario for demonstration only; not a live enforcement recommendation.",
+                "query_coordinates": {"lat": req.lat, "lon": req.lon}, "radius_km": req.radius_km,
+                "nearest_city": _nearest_city(req.lat, req.lon), "stations_found": 1,
+                "concrete_recommendation": task["recommended_action"], "inspection_tasks": [task],
+                "citizen_advisory": advisory_agent.get_advisory(current, req.language),
+                "agent_notes": "DEMO SCENARIO MODE â€” live source registry and observed AQI are not used."}
     all_stations = DELHI_STATIONS + MUMBAI_STATIONS
     nearby_stations = []
-    for s in all_stations:
-        dlat = (s["lat"] - req.lat) * 111.0
-        dlon = (s["lon"] - req.lon) * 111.0 * math.cos(math.radians((s["lat"] + req.lat) / 2))
-        dist = math.sqrt(dlat**2 + dlon**2)
-        if dist <= req.radius_km:
-            nearby_stations.append({**s, "distance_km": round(dist, 2)})
-
+    for station in all_stations:
+        dlat = (station["lat"] - req.lat) * 111.0
+        dlon = (station["lon"] - req.lon) * 111.0 * math.cos(math.radians((station["lat"] + req.lat) / 2))
+        distance = math.sqrt(dlat**2 + dlon**2)
+        if distance <= req.radius_km:
+            nearby_stations.append({**station, "distance_km": round(distance, 2)})
     if not nearby_stations:
-        # Return synthetic enforcement for the clicked location
-        return _synthetic_enforcement(req)
+        return {"status": "evidence_unavailable", "evidence_status": "unavailable",
+                "message": "No CAAQMS station is within the selected radius. Deploy mobile monitoring before recommending enforcement.",
+                "inspection_tasks": []}
 
-    # Build station data
     stations_data = []
-    for s in nearby_stations:
-        df = fetch_openaq_historical(s["name"], s["lat"], s["lon"], days_back=7)
-        aqi_val = int(df["aqi"].iloc[-1]) if not df.empty and "aqi" in df.columns else \
-                  random.randint(100, 350)
-        stations_data.append({
-            "name": s["name"],
-            "ward": s["name"],
-            "lat": s["lat"],
-            "lon": s["lon"],
-            "aqi": aqi_val,
-            "distance_km": s["distance_km"],
-        })
+    for station in nearby_stations:
+        df = fetch_openaq_historical(station["name"], station["lat"], station["lon"], days_back=7)
+        if df.empty or "aqi" not in df.columns or pd.isna(df["aqi"].iloc[-1]):
+            continue
+        stations_data.append({"name": station["name"], "ward": station["name"], "lat": station["lat"],
+            "lon": station["lon"], "aqi": int(df["aqi"].iloc[-1]), "distance_km": station["distance_km"]})
+    if not stations_data:
+        return {"status": "evidence_unavailable", "evidence_status": "unavailable",
+                "message": "Current observations are unavailable. The platform will not fabricate an enforcement recommendation.",
+                "inspection_tasks": []}
 
-    # Forecast data for each station
-    forecast_data = {}
-    for s in stations_data:
-        fc = _synthetic_forecast(s["name"], 48)["forecast"]
-        forecast_data[s["name"]] = {
-            "aqi_24h": fc[23]["aqi"] if len(fc) > 23 else s["aqi"],
-            "aqi_48h": fc[47]["aqi"] if len(fc) > 47 else s["aqi"],
+    verified_sources = load_verified_sources()
+    if not verified_sources:
+        return {
+            "status": "evidence_unavailable",
+            "evidence_status": "registry_onboarding_required",
+            "message": "Verified source registry onboarding is required before enforcement prioritisation.",
+            "inspection_tasks": [],
+            "registry": registry_status(),
         }
 
-    # Attribution for each station
-    attribution_data = {}
-    for s in stations_data:
-        attr = weighted_attribution(s["lat"], s["lon"],
-                                    wind_direction=270, wind_speed=3.5)
-        attribution_data[s["name"]] = attr
-
-    # Weather context
-    weather = {"wind_speed": 3.5, "wind_direction": 270, "temperature": 25}
-
-    # Generate enforcement actions
+    # This transparent persistence baseline replaces synthetic forecasts in enforcement.
+    forecast_data = {station["name"]: {"aqi_24h": station["aqi"], "aqi_48h": station["aqi"]} for station in stations_data}
+    attribution_data = {station["name"]: weighted_attribution(
+        station["lat"], station["lon"], wind_direction=270, wind_speed=3.5,
+        registry_sources=verified_sources,
+    ) for station in stations_data}
     result = enforcement_agent.generate_daily_action_list(
-        stations_data, forecast_data, attribution_data, weather
-    )
-
-    # Generate citizen advisory
-    worst_aqi = max(s["aqi"] for s in stations_data) if stations_data else 200
-    advisory = advisory_agent.get_advisory(worst_aqi, req.language)
-
-    # Determine nearest city
-    nearest = _nearest_city(req.lat, req.lon)
-
+        stations_data, forecast_data, attribution_data, {"wind_speed": 3.5, "wind_direction": 270, "temperature": 25})
+    worst_aqi = max(station["aqi"] for station in stations_data)
     return {
         "status": "ok",
+        "evidence_status": "observed_aqi_persistence_baseline",
+        "evidence_note": "Priorities use current observed AQI, heuristic attribution, and a persistence baseline. A human must verify field evidence before enforcement.",
         "query_coordinates": {"lat": req.lat, "lon": req.lon},
-        "radius_km": req.radius_km,
-        "nearest_city": nearest,
-        "stations_found": len(nearby_stations),
-        "total_plume_contribution_ugm3": round(worst_aqi * 1.2, 1),
-        "detected_source_names": [s["name"] for s in stations_data],
+        "radius_km": req.radius_km, "nearest_city": _nearest_city(req.lat, req.lon),
+        "stations_found": len(stations_data),
         "concrete_recommendation": result["actions"][0]["recommended_action"] if result["actions"] else "No action required",
         "inspection_tasks": result["actions"],
-        "citizen_advisory": advisory,
-        "agent_notes": (
-            "Multi-Agent System Report:\n"
-            f"  • Forecast Agent: Analysed {len(nearby_stations)} stations; "
-            f"{result['critical_count']} critical, {result['high_count']} high priority.\n"
-            f"  • Attribution Agent: Wind-sector analysis with land-use and fire data.\n"
-            f"  • Enforcement Agent: Generated {result['total_stations']} ranked actions.\n"
-            f"  • Advisory Agent: Citizen alert generated in {req.language}.\n"
-            f"  • Recommendation: {result['actions'][0]['officer_note'][:200] if result['actions'] else 'None'}"
-        ),
+        "citizen_advisory": advisory_agent.get_advisory(worst_aqi, req.language),
+        "agent_notes": "Decision-support report: observed stations and a persistence baseline; attribution requires field verification.",
     }
-
 
 def _nearest_city(lat: float, lon: float) -> str:
     cities = {"Delhi": (28.6139, 77.2090), "Mumbai": (19.0760, 72.8777),
@@ -369,41 +366,15 @@ def _nearest_city(lat: float, lon: float) -> str:
     return best
 
 
-def _synthetic_enforcement(req: EnforceRequest) -> dict:
-    """Fallback enforcement when no stations nearby."""
-    nearest = _nearest_city(req.lat, req.lon)
-    attr = weighted_attribution(req.lat, req.lon)
-    advisory = advisory_agent.get_advisory(200, req.language)
-
-    return {
-        "status": "ok",
-        "query_coordinates": {"lat": req.lat, "lon": req.lon},
-        "radius_km": req.radius_km,
-        "nearest_city": nearest,
-        "stations_found": 0,
-        "total_plume_contribution_ugm3": 0.0,
-        "detected_source_names": [],
-        "concrete_recommendation": f"Routine monitoring zone. No CAAQMS stations within {req.radius_km}km. Recommend deploying mobile monitoring unit.",
-        "citizen_advisory": advisory,
-        "inspection_tasks": [],
-        "agent_notes": (
-            "Multi-Agent System Report:\n"
-            f"  • Geo-Agent: No CPCB stations within {req.radius_km}km of query point.\n"
-            "  • Attribution Agent: General area characterization only.\n"
-            "  • Enforcement Agent: No enforcement actions generated.\n"
-            f"  • Nearest city: {nearest}\n"
-            "  • Recommendation: Deploy mobile monitoring unit for baseline data."
-        ),
-    }
-
-
 @app.get("/api/advisory/{station}")
 def get_station_advisory(station: str, language: str = Query("en")):
     """Get citizen health advisory for a station in the requested language."""
     df = fetch_openaq_historical(station, 28.6, 77.2, days_back=7)
-    aqi = int(df["aqi"].iloc[-1]) if not df.empty and "aqi" in df.columns else random.randint(100, 300)
-    advisory = advisory_agent.get_advisory(aqi, language)
-    return {"status": "ok", "station": station, **advisory}
+    if df.empty or "aqi" not in df.columns or pd.isna(df["aqi"].iloc[-1]):
+        return {"status": "evidence_unavailable", "station": station,
+                "message": "No current observation is available for a health advisory."}
+    advisory = advisory_agent.get_advisory(int(df["aqi"].iloc[-1]), language)
+    return {"status": "ok", "station": station, "evidence_status": "observed", **advisory}
 
 
 @app.post("/api/train")
@@ -471,12 +442,43 @@ def platform_metadata():
             "Rolling statistics (24h mean, 7d mean, rate of change)",
         ],
         "validation": "Held-out last 21 days, RMSE vs persistence baseline ('tomorrow = today')",
-        "attribution_method": "Wind-sector × land-use intersection with distance-weighted proximity scoring",
-        "agent_architecture": "LangGraph-inspired chain: Forecast → Attribution → Enforcement → Advisory",
+        "attribution_method": "Wind-sector Ã— land-use intersection with distance-weighted proximity scoring",
+        "agent_architecture": "LangGraph-inspired chain: Forecast â†’ Attribution â†’ Enforcement â†’ Advisory",
         "cities_supported": ["Delhi", "Mumbai"],
         "stations_delhi": len(DELHI_STATIONS),
         "stations_mumbai": len(MUMBAI_STATIONS),
         "languages": ["English", "Hindi", "Kannada", "Tamil"],
+    }
+
+
+@app.get("/api/registry/status")
+def get_registry_status():
+    """Return verified-source onboarding readiness for the operations team."""
+    return {"status": "ok", **registry_status()}
+
+
+@app.get("/api/readiness")
+def readiness_status():
+    """Expose the evidence gates a city operator must clear before live use."""
+    registry = registry_status()
+    return {
+        "status": "ok",
+        "mode": "live_ready" if OPENAQ_API_KEY and registry.get("verified_source_count", 0) else "onboarding_required",
+        "observations": {
+            "provider": "OpenAQ v3",
+            "configured": bool(OPENAQ_API_KEY),
+            "requirement": "OPENAQ_API_KEY and observed station records",
+        },
+        "source_registry": registry,
+        "forecast": {
+            "requirement": "time-ordered validation against a persistence baseline",
+            "demo_data_is_not_served_by_api": True,
+        },
+        "next_steps": [
+            "Set OPENAQ_API_KEY in the deployment environment.",
+            "Import verified source records with provenance URLs.",
+            "Train and export station-level validation metrics before operational forecasting.",
+        ],
     }
 
 
@@ -489,3 +491,4 @@ if __name__ == "__main__":
     print(f"Mumbai stations: {len(MUMBAI_STATIONS)}")
     print("Starting server...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+

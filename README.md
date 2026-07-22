@@ -51,6 +51,16 @@ This prototype is designed to remain usable when public data services are unavai
 
 For the hackathon demo, show the data-status label and describe source attribution as a decision-support estimate, not a regulatory finding. Claims of forecast RMSE improvement should only be shown after running the holdout evaluation on the corresponding station dataset.
 
+## Run with Docker
+
+For a reliable demo environment, start both services from the repository root:
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:3000. The frontend proxies API calls to the backend container.
+
 ## Architecture
 
 ```text
@@ -78,3 +88,15 @@ Python, FastAPI, pandas, NumPy, scikit-learn, LightGBM, Open-Meteo, OpenAQ, Reac
 ## Submission narrative
 
 **AQI Sentinel converts a pollution signal into an evidence-backed intervention plan before it becomes a public-health emergency.**
+
+
+## Submission evidence
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Judging evidence ledger](docs/JUDGING_EVIDENCE.md)
+- [Forecast validation protocol](docs/FORECAST_VALIDATION_PROTOCOL.md)
+- [90-day municipal pilot plan](docs/PILOT_PLAN.md)
+- [Judge Q&A](docs/JUDGE_QA.md)
+- [3-minute demo script](docs/DEMO_SCRIPT.md)
+
+The platform exposes evidence state in the user interface. Unavailable observations are never represented as live data, and inspection priorities always require human field verification.

@@ -1,3 +1,4 @@
+
 """
 Source Attribution Engine.
 For any hotspot coordinate, attributes pollution to source categories
@@ -12,9 +13,9 @@ import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
-# ──────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Land-use reference data (Delhi-focused)
-# ──────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Road density (major roads per sq km) by sector around Delhi center
 SECTOR_LAND_USE = {
     # Each key is a cardinal/ordinal direction sector
@@ -77,7 +78,7 @@ def get_wind_sector(wind_direction_deg: float) -> str:
 def get_upwind_sector(wind_direction_deg: float) -> str:
     """
     The upwind sector is the direction the wind is coming FROM.
-    Wind from 270° (west) → upwind sector is W.
+    Wind from 270Â° (west) â†’ upwind sector is W.
     """
     return get_wind_sector(wind_direction_deg)
 
@@ -96,6 +97,7 @@ def weighted_attribution(
     wind_direction: float = 270.0,
     wind_speed: float = 3.5,
     fire_count_upwind: int = 0,
+    registry_sources: Optional[List[dict]] = None,
 ) -> dict:
     """
     Attribute pollution at a hotspot to source categories.
@@ -110,13 +112,21 @@ def weighted_attribution(
     upwind = get_upwind_sector(wind_direction)
     land_use = SECTOR_LAND_USE.get(upwind, {"roads": 0.2, "industry": 0.15, "construction": 0.15, "green": 0.3})
 
-    # 2. Industry score: distance-weighted proximity to industry clusters
+    # In live mode, named sources must come from the verified municipal
+    # registry. The embedded lists are retained only for isolated legacy tests;
+    # API routes pass an explicit verified registry.
+    live_registry = registry_sources is not None
+    sources = registry_sources if live_registry else INDUSTRY_CLUSTERS
+
+    # 2. Industry score: distance-weighted proximity to verified sources
     industry_score = 0.0
     industry_sources = []
-    for cluster in INDUSTRY_CLUSTERS:
+    for cluster in sources:
+        if live_registry and cluster.get("source_type") != "industry":
+            continue
         d = haversine_distance(lat, lon, cluster["lat"], cluster["lon"])
         if d < 20:  # within 20km
-            contribution = cluster["weight"] / (1 + d / 5)
+            contribution = float(cluster.get("weight", 0.7)) / (1 + d / 5)
             industry_score += contribution
             industry_sources.append({
                 "name": cluster["name"],
@@ -128,10 +138,13 @@ def weighted_attribution(
     # 3. Construction score
     construction_score = 0.0
     construction_sources = []
-    for c in CONSTRUCTION_ZONES:
+    construction_candidates = registry_sources if live_registry else CONSTRUCTION_ZONES
+    for c in construction_candidates:
+        if live_registry and c.get("source_type") != "construction":
+            continue
         d = haversine_distance(lat, lon, c["lat"], c["lon"])
         if d < 20:
-            contribution = c["weight"] / (1 + d / 5)
+            contribution = float(c.get("weight", 0.7)) / (1 + d / 5)
             construction_score += contribution
             construction_sources.append({
                 "name": c["name"],
@@ -140,12 +153,16 @@ def weighted_attribution(
             })
     construction_score = min(1.0, construction_score)
 
-    # 4. Traffic score: roads + land-use density
-    traffic_score = land_use.get("roads", 0.2) * 1.5
-    for road in MAJOR_ROADS:
+    # 4. Traffic score. Land-use is a coarse legacy cue; live mode requires a
+    # verified traffic corridor record for named-source attribution.
+    traffic_score = 0.0 if live_registry else land_use.get("roads", 0.2) * 1.5
+    traffic_candidates = registry_sources if live_registry else MAJOR_ROADS
+    for road in traffic_candidates:
+        if live_registry and road.get("source_type") not in ("traffic_corridor", "diesel_fleet"):
+            continue
         d = haversine_distance(lat, lon, road["lat"], road["lon"])
         if d < 10:
-            traffic_score += road["traffic_density"] / (1 + d / 3)
+            traffic_score += float(road.get("traffic_density", 0.7)) / (1 + d / 3)
     traffic_score = min(1.0, traffic_score)
 
     # 5. Fire/biomass burning score
@@ -186,6 +203,8 @@ def weighted_attribution(
             key=lambda x: x[1]
         )[0],
         "overall_confidence": confidence,
+        "evidence_status": "verified_registry_with_seasonal_fire_proxy" if live_registry else "heuristic_legacy_registry",
+        "verification_required": True,
         "wind_sector": upwind,
         "wind_sector_label": SECTOR_LAND_USE[upwind]["label"],
         "detected_industry_sources": industry_sources[:3],
@@ -194,8 +213,8 @@ def weighted_attribution(
             "Wind-sector attribution: upwind sector intersected with land-use layers "
             "(OpenStreetMap roads, industrial clusters, construction zones, "
             "NASA FIRMS fire detections). Distance-weighted proximity scoring. "
-            "Cross-validated against Sentinel-5P NO₂ (traffic/industry signature) "
-            "and aerosol optical depth (burning/dust signature)."
+            "This prototype uses a static source registry and a seasonal fire proxy; "
+            "it is an inspection-prioritisation hypothesis, not causal attribution."
         ),
     }
 
@@ -203,9 +222,9 @@ def weighted_attribution(
 def estimate_fire_count(lat: float, lon: float, radius_km: float = 50) -> int:
     """
     Estimate number of active fire detections (NASA FIRMS VIIRS) upwind.
-    Uses mock data based on typical seasonal patterns for Delhi.
+    Uses a seasonal proxy only; this is not a live NASA FIRMS query.
     """
-    # Mock: higher in Oct-Nov (stubble burning season)
+    # Seasonal proxy: higher in Oct-Nov (stubble burning season).
     month = datetime.now().month
     if month in (10, 11):
         base = 15  # peak stubble burning
@@ -227,3 +246,4 @@ if __name__ == "__main__":
     print(f"  Dominant: {result['dominant_source']}")
     print(f"  Overall confidence: {result['overall_confidence']}")
     print(f"  Wind sector: {result['wind_sector']} ({result['wind_sector_label']})")
+

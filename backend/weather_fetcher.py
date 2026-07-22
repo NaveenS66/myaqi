@@ -14,6 +14,18 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 DELHI_LAT, DELHI_LON = 28.6139, 77.2090
 
 
+def _empty_weather_frame(forecast: bool = False) -> pd.DataFrame:
+    """A provider outage is unavailable data, never synthetic meteorology."""
+    columns = [
+        "timestamp", "temperature_2m", "humidity_2m", "wind_speed_10m",
+        "wind_direction_10m", "precipitation", "pressure", "boundary_layer_height",
+        "data_origin",
+    ]
+    if forecast:
+        columns.append("precipitation_probability")
+    return pd.DataFrame(columns=columns)
+
+
 def fetch_weather_historical(lat: float, lon: float,
                               days_back: int = 365) -> pd.DataFrame:
     """
@@ -26,8 +38,9 @@ def fetch_weather_historical(lat: float, lon: float,
 
     if os.path.exists(cache_file):
         df = pd.read_csv(cache_file, parse_dates=["timestamp"])
-        print(f"  [CACHE] Weather: {len(df)} rows")
-        return df
+        if "data_origin" in df.columns and df["data_origin"].eq("observed_open_meteo").all():
+            print(f"  [CACHE] Weather: {len(df)} rows")
+            return df
 
     print(f"  [FETCH] Weather data from Open-Meteo...")
     url = "https://archive-api.open-meteo.com/v1/archive"
@@ -66,14 +79,15 @@ def fetch_weather_historical(lat: float, lon: float,
                 "pressure": hourly.get("surface_pressure", []),
                 "boundary_layer_height": hourly.get("boundary_layer_height", []),
             })
+            df["data_origin"] = "observed_open_meteo"
             df.to_csv(cache_file, index=False)
             print(f"    Saved {len(df)} weather rows")
             return df
     except Exception as e:
         print(f"    Open-Meteo error: {e}")
 
-    # Fallback: synthetic but realistic Delhi weather
-    return _generate_synthetic_weather(lat, lon, days_back, cache_file)
+    print("    No verified Open-Meteo historical observations available")
+    return _empty_weather_frame()
 
 
 def _generate_synthetic_weather(lat: float, lon: float,
@@ -161,24 +175,13 @@ def fetch_weather_forecast(lat: float = DELHI_LAT, lon: float = DELHI_LON,
                 "precipitation_probability": hourly.get("precipitation_probability", []),
                 "pressure": hourly.get("surface_pressure", []),
             })
+            df["data_origin"] = "forecast_open_meteo"
             return df
     except Exception as e:
         print(f"  Forecast fetch error: {e}")
 
-    # Fallback
-    now = datetime.now()
-    rows = []
-    for h in range(hours):
-        rows.append({
-            "timestamp": (now + timedelta(hours=h)).isoformat(),
-            "temperature_2m": 25,
-            "humidity_2m": 60,
-            "wind_speed_10m": 5.0,
-            "wind_direction_10m": 270.0,
-            "precipitation_probability": 10,
-            "pressure": 1013,
-        })
-    return pd.DataFrame(rows)
+    print("  No verified Open-Meteo forecast available")
+    return _empty_weather_frame(forecast=True)
 
 
 if __name__ == "__main__":
@@ -186,3 +189,4 @@ if __name__ == "__main__":
     print(f"Weather historical: {len(hist)} rows")
     fc = fetch_weather_forecast()
     print(f"Weather forecast: {len(fc)} rows")
+
