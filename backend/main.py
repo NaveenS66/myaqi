@@ -1,4 +1,6 @@
-
+Exit code: 0
+Wall time: 0.7 seconds
+Output:
 """
 Urban Air Quality Intelligence Platform
 ========================================
@@ -14,7 +16,6 @@ import os
 import sys
 import json
 import math
-import random
 import pickle
 import numpy as np
 import pandas as pd
@@ -39,7 +40,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from data_ingestion import (
     DELHI_STATIONS, MUMBAI_STATIONS,
-    load_all_delhi_data, fetch_openaq_historical
+    load_all_delhi_data, fetch_openaq_historical, OPENAQ_API_KEY
 )
 from weather_fetcher import (
     fetch_weather_historical, fetch_weather_forecast,
@@ -183,9 +184,8 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
                         model_data = load_model(station)
         except Exception as e:
             print(f"    Training attempt failed: {e}")
-        # Fallback to synthetic forecast
         if model_data is None:
-            return _synthetic_forecast(station, hours)
+            return _forecast_unavailable(station, "No validated station model is available. Add verified observations and retrain before serving a forecast.")
 
     # Generate forecast
     df_recent = fetch_openaq_historical(station, 28.6, 77.2, days_back=7)
@@ -193,7 +193,7 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     fc_df = generate_forecast(station, df_recent, weather_fc, hours=hours)
 
     if fc_df.empty:
-        return _synthetic_forecast(station, hours)
+        return _forecast_unavailable(station, "Verified recent observations or weather forecast are unavailable; no forecast was generated.")
 
     # Report only the held-out metrics calculated during model training.
     # Forecast variation is not an accuracy metric and must never be shown as RMSE.
@@ -220,29 +220,18 @@ def get_forecast(station: str, hours: int = Query(72, ge=1, le=168)):
     }
 
 
-def _synthetic_forecast(station: str, hours: int) -> dict:
-    """Generate synthetic forecast when model/data unavailable."""
-    now = datetime.now()
-    base = {"Anand Vihar": 280, "ITO": 250, "RK Puram": 220}.get(station, 200)
-    fc = []
-    for h in range(1, hours + 1):
-        ts = now + timedelta(hours=h)
-        diurnal = 1 + 0.2 * math.sin(math.radians(ts.hour * 15 - 90))
-        fc.append({
-            "timestamp": ts.isoformat(),
-            "station": station,
-            "aqi": max(0, int(base * diurnal + random.randint(-20, 20))),
-            "forecast_hour": h,
-        })
+def _forecast_unavailable(station: str, reason: str) -> dict:
+    """Return an explicit evidence gap instead of a plausible-looking forecast."""
     return {
-        "status": "ok",
+        "status": "evidence_unavailable",
         "station": station,
-        "forecast": fc,
+        "forecast": [],
         "metadata": {
-            "model": "Synthetic demo fallback",
-            "data_status": "demo_synthetic",
-            "note": "This forecast is generated for interaction continuity and is not a measured model result.",
-        }
+            "model": None,
+            "data_status": "unavailable",
+            "note": reason,
+            "remediation": "Configure OPENAQ_API_KEY, ingest verified station history, and run /api/train.",
+        },
     }
 
 
@@ -432,6 +421,31 @@ def platform_metadata():
 def get_registry_status():
     """Return verified-source onboarding readiness for the operations team."""
     return {"status": "ok", **registry_status()}
+
+
+@app.get("/api/readiness")
+def readiness_status():
+    """Expose the evidence gates a city operator must clear before live use."""
+    registry = registry_status()
+    return {
+        "status": "ok",
+        "mode": "live_ready" if OPENAQ_API_KEY and registry.get("verified_sources", 0) else "onboarding_required",
+        "observations": {
+            "provider": "OpenAQ v3",
+            "configured": bool(OPENAQ_API_KEY),
+            "requirement": "OPENAQ_API_KEY and observed station records",
+        },
+        "source_registry": registry,
+        "forecast": {
+            "requirement": "time-ordered validation against a persistence baseline",
+            "demo_data_is_not_served_by_api": True,
+        },
+        "next_steps": [
+            "Set OPENAQ_API_KEY in the deployment environment.",
+            "Import verified source records with provenance URLs.",
+            "Train and export station-level validation metrics before operational forecasting.",
+        ],
+    }
 
 
 if __name__ == "__main__":
