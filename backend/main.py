@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.7 seconds
-Output:
 """
 Urban Air Quality Intelligence Platform
 ========================================
