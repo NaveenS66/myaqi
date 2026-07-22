@@ -318,34 +318,6 @@ def _nearest_city(lat: float, lon: float) -> str:
     return best
 
 
-def _synthetic_enforcement(req: EnforceRequest) -> dict:
-    """Fallback enforcement when no stations nearby."""
-    nearest = _nearest_city(req.lat, req.lon)
-    attr = weighted_attribution(req.lat, req.lon)
-    advisory = advisory_agent.get_advisory(200, req.language)
-
-    return {
-        "status": "ok",
-        "query_coordinates": {"lat": req.lat, "lon": req.lon},
-        "radius_km": req.radius_km,
-        "nearest_city": nearest,
-        "stations_found": 0,
-        "total_plume_contribution_ugm3": 0.0,
-        "detected_source_names": [],
-        "concrete_recommendation": f"Routine monitoring zone. No CAAQMS stations within {req.radius_km}km. Recommend deploying mobile monitoring unit.",
-        "citizen_advisory": advisory,
-        "inspection_tasks": [],
-        "agent_notes": (
-            "Multi-Agent System Report:\n"
-            f"  • Geo-Agent: No CPCB stations within {req.radius_km}km of query point.\n"
-            "  • Attribution Agent: General area characterization only.\n"
-            "  • Enforcement Agent: No enforcement actions generated.\n"
-            f"  • Nearest city: {nearest}\n"
-            "  • Recommendation: Deploy mobile monitoring unit for baseline data."
-        ),
-    }
-
-
 @app.get("/api/advisory/{station}")
 def get_station_advisory(station: str, language: str = Query("en")):
     """Get citizen health advisory for a station in the requested language."""
