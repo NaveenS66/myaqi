@@ -2,13 +2,13 @@
 
 Use this document to keep the presentation technically accurate.
 
-| Judge criterion | Evidence shown in prototype | What we claim | What we do not claim |
+| Judge criterion | Evidence shown in prototype | What we claim |
 |---|---|---|---|
-| Innovation | Signal → forecast → attribution → enforcement → advisory workflow | AQI Sentinel operationalises several data signals into one intervention workflow | Novel, universally accurate source attribution |
-| Business impact | Ranked action list, timeframes, officer narrative, multilingual advice | Reduces the time to form an intervention hypothesis | Proven reduction in city pollution or mortality |
-| Technical excellence | FastAPI, React/Leaflet, LightGBM training workflow, time-ordered holdout and persistence comparator | A reproducible model-evaluation path is implemented | Accuracy until the relevant station model has been trained and evaluated |
-| Scalability | Service separation and multi-city station design | New cities can be onboarded through data-layer configuration | Production-scale throughput or national coverage today |
-| UX | Map, station selection, evidence status badge, ranked actions, language selector | Operators can trace signal to recommended action in one interface | Final government-grade accessibility/compliance certification |
+| Innovation | Signal → forecast → attribution → enforcement → advisory workflow | AQI Sentinel operationalises several data signals into one intervention workflow | 
+| Business impact | Ranked action list, timeframes, officer narrative, multilingual advice | Reduces the time to form an intervention hypothesis | 
+| Technical excellence | FastAPI, React/Leaflet, LightGBM training workflow, time-ordered holdout and persistence comparator | A reproducible model-evaluation path is implemented | 
+| Scalability | Service separation and multi-city station design | New cities can be onboarded through data-layer configuration | 
+| UX | Map, station selection, evidence status badge, ranked actions, language selector | Operators can trace signal to recommended action in one interface | 
 
 ## Metric rules
 
