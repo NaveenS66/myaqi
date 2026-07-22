@@ -30,6 +30,8 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertIn("OPENAQ_API_KEY", section)
         self.assertIn("_empty_observation_frame", section)
         self.assertIn("_cpcb_pm25_subindex", source)
+        self.assertIn("pd.errors.ParserError", source)
+        self.assertIn("Ignoring unreadable cache", source)
 
     def test_enforcement_never_uses_synthetic_forecast(self):
         source = (ROOT / "backend" / "main.py").read_text(encoding="utf-8")
