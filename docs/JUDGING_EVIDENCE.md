@@ -3,7 +3,7 @@
 Use this document to keep the presentation technically accurate.
 
 | Judge criterion | Evidence shown in prototype | What we claim |
-|---|---|---|---|
+|---|---|---|
 | Innovation | Signal → forecast → attribution → enforcement → advisory workflow | AQI Sentinel operationalises several data signals into one intervention workflow 
 | Business impact | Ranked action list, timeframes, officer narrative, multilingual advice | Reduces the time to form an intervention hypothesis | 
 | Technical excellence | FastAPI, React/Leaflet, LightGBM training workflow, time-ordered holdout and persistence comparator | A reproducible model-evaluation path is implemented | 
