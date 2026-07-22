@@ -29,6 +29,13 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertNotIn("_synthetic_forecast", section)
         self.assertIn("observed_aqi_persistence_baseline", section)
 
+    def test_evaluation_exporter_and_protocol_exist(self):
+        exporter = (ROOT / "backend" / "export_evaluation_report.py").read_text(encoding="utf-8")
+        protocol = (ROOT / "docs" / "FORECAST_VALIDATION_PROTOCOL.md").read_text(encoding="utf-8")
+        compile(exporter, "backend/export_evaluation_report.py", "exec")
+        self.assertIn("persistence_rmse", exporter)
+        self.assertIn("Do not claim 1 km coverage", protocol)
+
     def test_attribution_does_not_claim_unprovided_validation(self):
         source = (ROOT / "backend" / "attribution" / "engine.py").read_text(encoding="utf-8")
         self.assertNotIn("Cross-validated against Sentinel", source)
