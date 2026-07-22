@@ -1,3 +1,4 @@
+
 """
 Urban Air Quality Intelligence Platform
 ========================================
@@ -392,6 +393,54 @@ def model_status():
             station = f.replace("lgb_", "").replace(".pkl", "").replace("_", " ").title()
             path = os.path.join(MODELS_DIR, f)
             models.append({
-                "station": station,…498 tokens truncated…Starting server...")
+                "station": station,
+                "file": f,
+                "size_kb": round(os.path.getsize(path) / 1024, 1),
+                "trained": True,
+            })
+    return {"status": "ok", "models": models, "total": len(models)}
+
+
+@app.get("/api/metadata")
+def platform_metadata():
+    """Return platform metadata for the demo deck."""
+    return {
+        "data_sources": [
+            "OpenAQ API (aggregates CPCB CAAQMS data)",
+            "Open-Meteo API (weather forecasts, free, no key)",
+            "NASA FIRMS VIIRS (active fire detections)",
+            "OpenStreetMap (land-use, road networks)",
+        ],
+        "forecast_model": "LightGBM per-station with 24 features",
+        "features": [
+            "AQI lags (1h-72h)",
+            "Open-Meteo forecast variables (wind, temp, humidity, pressure, BLH)",
+            "Temporal features (hour, dayofweek, month, season)",
+            "Rolling statistics (24h mean, 7d mean, rate of change)",
+        ],
+        "validation": "Held-out last 21 days, RMSE vs persistence baseline ('tomorrow = today')",
+        "attribution_method": "Wind-sector Ã— land-use intersection with distance-weighted proximity scoring",
+        "agent_architecture": "LangGraph-inspired chain: Forecast â†’ Attribution â†’ Enforcement â†’ Advisory",
+        "cities_supported": ["Delhi", "Mumbai"],
+        "stations_delhi": len(DELHI_STATIONS),
+        "stations_mumbai": len(MUMBAI_STATIONS),
+        "languages": ["English", "Hindi", "Kannada", "Tamil"],
+    }
+
+
+@app.get("/api/registry/status")
+def get_registry_status():
+    """Return verified-source onboarding readiness for the operations team."""
+    return {"status": "ok", **registry_status()}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    print("=" * 60)
+    print("Urban Air Quality Intelligence Platform")
+    print("=" * 60)
+    print(f"Delhi stations: {len(DELHI_STATIONS)}")
+    print(f"Mumbai stations: {len(MUMBAI_STATIONS)}")
+    print("Starting server...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
