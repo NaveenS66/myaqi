@@ -51,6 +51,16 @@ This prototype is designed to remain usable when public data services are unavai
 
 For the hackathon demo, show the data-status label and describe source attribution as a decision-support estimate, not a regulatory finding. Claims of forecast RMSE improvement should only be shown after running the holdout evaluation on the corresponding station dataset.
 
+## Run with Docker
+
+For a reliable demo environment, start both services from the repository root:
+
+```bash
+docker compose up --build
+```
+
+Open http://localhost:3000. The frontend proxies API calls to the backend container.
+
 ## Architecture
 
 ```text
