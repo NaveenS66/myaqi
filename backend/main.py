@@ -1,3 +1,4 @@
+
 """
 Urban Air Quality Intelligence Platform
 ========================================
@@ -33,9 +34,9 @@ app = FastAPI(title="Urban Air Quality Intelligence Platform",
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
                    allow_methods=["*"], allow_headers=["*"])
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Import modules
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 from data_ingestion import (
     DELHI_STATIONS, MUMBAI_STATIONS,
     load_all_delhi_data, fetch_openaq_historical
@@ -55,9 +56,9 @@ from agents.enforcement_agent import (
     EnforcementAction
 )
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Initialize agents (singletons)
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 enforcement_agent = EnforcementAgent()
 advisory_agent = CitizenAdvisoryAgent()
 
@@ -68,9 +69,9 @@ _forecast_cache = {}
 _model_training_status = {}
 
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Pydantic Models
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class EnforceRequest(BaseModel):
     lat: float
@@ -91,9 +92,9 @@ class AttributionRequest(BaseModel):
     wind_speed: Optional[float] = 3.5
 
 
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Routes
-# ──────────────────────────────────────────────────────────
+# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @app.get("/")
 def root():
@@ -128,13 +129,15 @@ def get_current_aqi(city: Optional[str] = Query(None)):
             df = fetch_openaq_historical(station["name"], station["lat"], station["lon"], days_back=7)
             has_observation = not df.empty and "aqi" in df.columns and pd.notna(df["aqi"].iloc[-1])
             aqi_val = int(df["aqi"].iloc[-1]) if has_observation else None
+            data_origin = str(df["data_origin"].iloc[-1]) if has_observation and "data_origin" in df.columns else "unavailable"
             any_live = any_live or has_observation
             rows.append({
                 "ward": station["name"], "station": station["name"],
                 "lat": station["lat"], "lon": station["lon"],
                 "aqi": aqi_val,
                 "category": aqi_category(aqi_val) if aqi_val is not None else "Unavailable",
-                "data_status": "observed" if has_observation else "unavailable",
+                "data_status": data_origin if has_observation else "unavailable",
+                "data_origin": data_origin,
                 "timestamp": datetime.now().isoformat(),
             })
         all_data[city_name] = rows
@@ -143,7 +146,7 @@ def get_current_aqi(city: Optional[str] = Query(None)):
     return {
         "status": "ok",
         "data": payload,
-        "source": "OpenAQ/CPCB" if any_live else "No current provider observation",
+        "source": "OpenAQ observed PM2.5 with CPCB sub-index proxy" if any_live else "No current provider observation",
         "data_status": "observed_or_unavailable",
         "note": "Unavailable stations are never populated with synthetic AQI values.",
     }
@@ -394,8 +397,8 @@ def platform_metadata():
             "Rolling statistics (24h mean, 7d mean, rate of change)",
         ],
         "validation": "Held-out last 21 days, RMSE vs persistence baseline ('tomorrow = today')",
-        "attribution_method": "Wind-sector × land-use intersection with distance-weighted proximity scoring",
-        "agent_architecture": "LangGraph-inspired chain: Forecast → Attribution → Enforcement → Advisory",
+        "attribution_method": "Wind-sector Ã— land-use intersection with distance-weighted proximity scoring",
+        "agent_architecture": "LangGraph-inspired chain: Forecast â†’ Attribution â†’ Enforcement â†’ Advisory",
         "cities_supported": ["Delhi", "Mumbai"],
         "stations_delhi": len(DELHI_STATIONS),
         "stations_mumbai": len(MUMBAI_STATIONS),
@@ -412,3 +415,4 @@ if __name__ == "__main__":
     print(f"Mumbai stations: {len(MUMBAI_STATIONS)}")
     print("Starting server...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
