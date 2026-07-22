@@ -1,4 +1,6 @@
-
+Exit code: 0
+Wall time: 0.7 seconds
+Output:
 """Regression guard for demo integrity claims.
 
 These tests intentionally use only the Python standard library so they can run
@@ -40,6 +42,16 @@ class EvidenceContractTests(unittest.TestCase):
         self.assertNotIn("_synthetic_forecast", section)
         self.assertNotIn("_synthetic_enforcement", source)
         self.assertIn("observed_aqi_persistence_baseline", section)
+
+    def test_forecast_and_weather_never_fall_back_to_synthetic_operational_data(self):
+        main = (ROOT / "backend" / "main.py").read_text(encoding="utf-8")
+        forecast = main[main.index('def get_forecast'):main.index('def _forecast_unavailable')]
+        self.assertNotIn("_synthetic_forecast", forecast)
+        self.assertIn("_forecast_unavailable", forecast)
+        weather = (ROOT / "backend" / "weather_fetcher.py").read_text(encoding="utf-8")
+        historical = weather[weather.index('def fetch_weather_historical'):weather.index('def _generate_synthetic_weather')]
+        self.assertNotIn("_generate_synthetic_weather(", historical)
+        self.assertIn("_empty_weather_frame", historical)
 
     def test_evaluation_exporter_and_protocol_exist(self):
         exporter = (ROOT / "backend" / "export_evaluation_report.py").read_text(encoding="utf-8")
