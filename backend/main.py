@@ -1,4 +1,3 @@
-
 """
 Urban Air Quality Intelligence Platform
 ========================================
@@ -55,6 +54,7 @@ from agents.enforcement_agent import (
     EnforcementAgent, CitizenAdvisoryAgent,
     EnforcementAction
 )
+from source_registry import load_verified_sources, registry_status
 
 # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Initialize agents (singletons)
@@ -252,12 +252,20 @@ def get_attribution(req: AttributionRequest):
     Returns percentage breakdown by source category with confidence scores.
     Uses wind sector analysis + land-use data + satellite fire detections.
     """
+    verified_sources = load_verified_sources()
+    if not verified_sources:
+        return {
+            "status": "evidence_unavailable",
+            "message": "Verified source registry onboarding is required before live attribution.",
+            "registry": registry_status(),
+        }
     fire_count = estimate_fire_count(req.lat, req.lon)
     result = weighted_attribution(
         req.lat, req.lon,
         wind_direction=req.wind_direction,
         wind_speed=req.wind_speed,
         fire_count_upwind=fire_count,
+        registry_sources=verified_sources,
     )
     return {"status": "ok", **result}
 
@@ -290,9 +298,22 @@ def enforce_agent(req: EnforceRequest):
                 "message": "Current observations are unavailable. The platform will not fabricate an enforcement recommendation.",
                 "inspection_tasks": []}
 
+    verified_sources = load_verified_sources()
+    if not verified_sources:
+        return {
+            "status": "evidence_unavailable",
+            "evidence_status": "registry_onboarding_required",
+            "message": "Verified source registry onboarding is required before enforcement prioritisation.",
+            "inspection_tasks": [],
+            "registry": registry_status(),
+        }
+
     # This transparent persistence baseline replaces synthetic forecasts in enforcement.
     forecast_data = {station["name"]: {"aqi_24h": station["aqi"], "aqi_48h": station["aqi"]} for station in stations_data}
-    attribution_data = {station["name"]: weighted_attribution(station["lat"], station["lon"], wind_direction=270, wind_speed=3.5) for station in stations_data}
+    attribution_data = {station["name"]: weighted_attribution(
+        station["lat"], station["lon"], wind_direction=270, wind_speed=3.5,
+        registry_sources=verified_sources,
+    ) for station in stations_data}
     result = enforcement_agent.generate_daily_action_list(
         stations_data, forecast_data, attribution_data, {"wind_speed": 3.5, "wind_direction": 270, "temperature": 25})
     worst_aqi = max(station["aqi"] for station in stations_data)
@@ -371,48 +392,6 @@ def model_status():
             station = f.replace("lgb_", "").replace(".pkl", "").replace("_", " ").title()
             path = os.path.join(MODELS_DIR, f)
             models.append({
-                "station": station,
-                "file": f,
-                "size_kb": round(os.path.getsize(path) / 1024, 1),
-                "trained": True,
-            })
-    return {"status": "ok", "models": models, "total": len(models)}
-
-
-@app.get("/api/metadata")
-def platform_metadata():
-    """Return platform metadata for the demo deck."""
-    return {
-        "data_sources": [
-            "OpenAQ API (aggregates CPCB CAAQMS data)",
-            "Open-Meteo API (weather forecasts, free, no key)",
-            "NASA FIRMS VIIRS (active fire detections)",
-            "OpenStreetMap (land-use, road networks)",
-        ],
-        "forecast_model": "LightGBM per-station with 24 features",
-        "features": [
-            "AQI lags (1h-72h)",
-            "Open-Meteo forecast variables (wind, temp, humidity, pressure, BLH)",
-            "Temporal features (hour, dayofweek, month, season)",
-            "Rolling statistics (24h mean, 7d mean, rate of change)",
-        ],
-        "validation": "Held-out last 21 days, RMSE vs persistence baseline ('tomorrow = today')",
-        "attribution_method": "Wind-sector Ã— land-use intersection with distance-weighted proximity scoring",
-        "agent_architecture": "LangGraph-inspired chain: Forecast â†’ Attribution â†’ Enforcement â†’ Advisory",
-        "cities_supported": ["Delhi", "Mumbai"],
-        "stations_delhi": len(DELHI_STATIONS),
-        "stations_mumbai": len(MUMBAI_STATIONS),
-        "languages": ["English", "Hindi", "Kannada", "Tamil"],
-    }
-
-
-if __name__ == "__main__":
-    import uvicorn
-    print("=" * 60)
-    print("Urban Air Quality Intelligence Platform")
-    print("=" * 60)
-    print(f"Delhi stations: {len(DELHI_STATIONS)}")
-    print(f"Mumbai stations: {len(MUMBAI_STATIONS)}")
-    print("Starting server...")
+                "station": station,…498 tokens truncated…Starting server...")
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
