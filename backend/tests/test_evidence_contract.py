@@ -27,6 +27,7 @@ class EvidenceContractTests(unittest.TestCase):
         end = source.index('def _nearest_city', start)
         section = source[start:end]
         self.assertNotIn("_synthetic_forecast", section)
+        self.assertNotIn("_synthetic_enforcement", source)
         self.assertIn("observed_aqi_persistence_baseline", section)
 
     def test_evaluation_exporter_and_protocol_exist(self):
